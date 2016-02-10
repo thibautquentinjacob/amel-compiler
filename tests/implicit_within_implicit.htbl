@@ -1,0 +1,6 @@
+.implicit1 {
+    test
+    .implicit2 {
+        test
+    }
+}

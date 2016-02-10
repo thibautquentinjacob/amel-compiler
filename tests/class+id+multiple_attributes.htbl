@@ -1,0 +1,3 @@
+div.class#id[width="100%", height="50%"] {
+    test
+}
