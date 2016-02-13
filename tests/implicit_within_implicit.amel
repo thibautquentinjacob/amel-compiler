@@ -1,6 +1,6 @@
-.implicit1 {
+.implicit1 (
     test
-    .implicit2 {
+    .implicit2 (
         test
-    }
-}
+    )
+)

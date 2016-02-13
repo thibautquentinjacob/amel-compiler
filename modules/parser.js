@@ -18,6 +18,7 @@ function Parser () {
     var levels                = [];
     var levelIndex            = 0;
     var inMultilineComment    = 0;
+    var inStyleMarkup         = 0;
     var logger                = new Logger();
     var keywords              = new Keywords();
     var lineNumber            = 0;
@@ -32,10 +33,10 @@ function Parser () {
     var commentRe             = /^\s*\/\//;
     var ConstDefRe            = /@([a-zA-Z0-9_]+)\s*=\s*"(.*)"/;
     var constUseRe            = /@([a-zA-Z0-9_]+)/g;
-    var elementDeclarationRe  = /^\s*([^\.#][^ @\{\}\[\]]+)\s*(\[.*\])?\s*\{/;
-    var elementDeclaration2Re = /^\s*([^\.#][^ @\}\[\]]+)(\[.*\])/g; // elements without values
-    var implicitDeclarationRe = /^\s*(\.[^ @\{\}\[\]]+|#[^ @\{\}\[\]]+)\s*(\[.*\])?\s*\{/;
-    var oneLineDeclarationRe  = /([^\.#> ][^ @\{\}\[\]>]+)\s*(\[[^\{\}>]*\])?\s*\{([^\}]+)\}/g;
+    var elementDeclarationRe  = /^\s*([^\.#][^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
+    var elementDeclaration2Re = /^\s*([^\.#][^ @\)\[\]]+)(\[.*\])/; // elements without values
+    var implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
+    var oneLineDeclarationRe  = /([^\.#> ][^ @\(\)\[\]>]+)\s*(\[[^\(\)>]*\])?\s*\(([^\)]+)\)/g;
     var elementClassRe        = /\.([a-zA-Z0-9_\-]+)/g;
     var elementIdRe           = /#([a-zA-Z0-9_\-]+)/;
     var elementAttributesRe   = /([a-z]+)\s*=\s*"([^,"]*)"/g;
@@ -45,8 +46,8 @@ function Parser () {
     var boldRe                = /__([^_]*)__/g;
     var italicRe              = /_([^_]*)_/g;
     var strokeRe              = /\-\-(.*)\-\-/g;
-    var supRe                 = /\^\{\}/
-    var blockEndRe            = /\}\s*$/;
+    var supRe                 = /\^\(\)/
+    var blockEndRe            = /\)\s*$/;
     var tagRe                 = new RegExp( "(" + keywords.tags.join( "|" ) + 
                                 ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     var singletonTagRe        = new RegExp( "(" + keywords.singletonTags.join( "|" ) + 
@@ -61,29 +62,19 @@ function Parser () {
         var output = "";
         // One line multiline comment. Why, but why?
         if ( res = multilineComment.exec( line )) {
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex ; i++ ) {
-                indentation += "    ";
-            }
             logger.log( "Line " + lineNumber + 
-                        ": Found one line multiline comment: " + res[1], scriptName );
-            output += indentation + "<!--" + res[1] + "-->\n";
+                        ": Found one line multiline comment: " + res[1], 
+                        scriptName );
+            output += indentation() + "<!--" + res[1] + "-->\n";
         // multiline comment end
-        } else if ( res = multilineCommentERe.exec( line )) {
+        } 
+        else if ( res = multilineCommentERe.exec( line )) {
             logger.log( "Line " + lineNumber + ": Found multiline comment end", 
                         scriptName );
             if ( res[1] !== "" ) {
-                var indentation = "";
-                for ( var i = 0 ; i < levelIndex ; i++ ) {
-                    indentation += "    ";
-                }
-                output += indentation + "  " + res[1] + "-->\n";
+                output += indentation() + "  " + res[1] + "-->\n";
             } else {
-                var indentation = "";
-                for ( var i = 0 ; i < levelIndex ; i++ ) {
-                    indentation += "    ";
-                }
-                output += indentation + res[1] + "-->\n";
+                output += indentation() + res[1] + "-->\n";
             }
             if ( !inMultilineComment ) {
                 logger.log( "Line " + lineNumber + 
@@ -91,20 +82,43 @@ function Parser () {
                             scriptName, "w" );
             }
             inMultilineComment = 0;
+        // Block end
+        } 
+        else if ( blockEndRe.exec( line )) {
+            logger.log( "Line " + lineNumber + ": Closing block", scriptName );
+            levelIndex--;
+            var element = levels.pop();
+            output += indentation() + "</" + element + ">\n";
+            if ( inStyleMarkup && element === "style" ) {
+                logger.log( "Line " + lineNumber + ": No longer in style markup", 
+                            scriptName );
+                inStyleMarkup = 0;
+            }
         /* If inside multiline comment ignore anything except closing 
            multiline comment */
-        } else if ( inMultilineComment ) {
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex ; i++ ) {
-                indentation += "    ";
+        } 
+        else if ( inMultilineComment || inStyleMarkup ) {
+            if ( inStyleMarkup ) {
+                // Check for constant use within the style markup
+                while ( constant = constUseRe.exec( line )) {
+                    if ( constants[constant[1]]) {
+                        logger.log( "Line " + lineNumber + ": Replacing @" + 
+                                    constant[1] + " by " + constants[constant[1]], 
+                                    scriptName );
+                        var line = line.replace( "@" + constant[1], constants[constant[1]]);
+                    } else {
+                        logger.log( "Line " + lineNumber + ": Constant " + 
+                                    constant[1] + " undefined", scriptName, "e" );
+                        var line = line.replace( "@" + constant[1], "?" + constant[1] );
+                    }
+                }
+                output += line + "\n";
+            } else {
+                output += indentation() + "  " + line + "\n";   
             }
-            output += indentation + "  " + line + "\n";
         // multiline comment start
-        } else if ( res = multilineCommentSRe.exec( line )) {
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex ; i++ ) {
-                indentation += "    ";
-            }
+        } 
+        else if ( res = multilineCommentSRe.exec( line )) {
             logger.log( "Line " + lineNumber + 
                         ": Found multiline comment start", scriptName );
             if ( inMultilineComment ) {
@@ -112,17 +126,16 @@ function Parser () {
                             ": Already in a multiline comment", scriptName, "w" );
             }
             inMultilineComment = 1;
-            output += indentation + "<!--" + res[1] + "\n";
+            output += indentation() + "<!--" + res[1] + "\n";
         // Skip line if one line comment
-        } else if ( commentRe.exec( line )) {
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex ; i++ ) {
-                indentation += "    ";
-            }
+        } 
+        else if ( commentRe.exec( line )) {
             logger.log( "Line " + lineNumber + ": Comment " + line, scriptName );
-            output += indentation + "<!--" + line.trim().replace( /^\/\//, "" ) + " -->\n";
+            output += indentation() + "<!--" + line.trim().replace( /^\/\//, "" ) + 
+                      " -->\n";
         // Constant definition
-        } else if ( res = ConstDefRe.exec( line )) {
+        } 
+        else if ( res = ConstDefRe.exec( line )) {
             logger.log( "Line " + lineNumber + ": Const " + res[1] + " = " + 
                         res[2], scriptName );
             // Send warning if constant is being redefined
@@ -137,11 +150,7 @@ function Parser () {
                         res[1], scriptName );
             var tag = "div";
             // Indentation level
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex ; i++ ) {
-                indentation += "    ";
-            }
-            var element = indentation + "<" + tag;
+            var element = indentation() + "<" + tag;
             // Find classes
             if ( line.match( elementClassRe )) {
                 var classAmount = 0;
@@ -183,8 +192,8 @@ function Parser () {
             var deprecatedElement  = deprecatedTagRe.exec( res[1]);
             var tag                = "";
             if ( singletonElement ) {
-                logger.log( "Line " + lineNumber + ": " + singletonElement[1] + " is a singleton element", scriptName, "e" );
-//                 process.exit( 1 );
+                logger.log( "Line " + lineNumber + ": " + singletonElement[1] + 
+                            " is a singleton element", scriptName, "e" );
             }
             if ( !baseElement ) {
                 if ( nonStandardElement ) {
@@ -204,11 +213,7 @@ function Parser () {
                 }
             } else { tag = baseElement[1] }
             // Indentation level
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex ; i++ ) {
-                indentation += "    ";
-            }
-            var element = indentation + "<" + tag;
+            var element = indentation() + "<" + tag;
             // Find classes
             if ( line.match( elementClassRe )) {
                 var classAmount = 0;
@@ -231,20 +236,24 @@ function Parser () {
             }
             // Find attributes
             while ( attributes = elementAttributesRe.exec( res[2])) {
-                logger.log( "Line " + lineNumber + ": Attribute: " + attributes[1] + " = " + attributes[2], scriptName );
+                logger.log( "Line " + lineNumber + ": Attribute: " + 
+                            attributes[1] + " = " + attributes[2], scriptName );
                 element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
             }
             while ( attributes = attributesConstRe.exec( res[2])) {
-                logger.log( "Line " + lineNumber + ": Const in attribute: " + attributes[1] + " = " + attributes[2], scriptName );
+                logger.log( "Line " + lineNumber + ": Const in attribute: " + 
+                            attributes[1] + " = " + attributes[2], scriptName );
                 if ( constants[attributes[2]]) {
                     logger.log( "Line " + lineNumber + ": Replacing @" + 
                                 attributes[2] + " by " + constants[attributes[2]], 
                                 scriptName );
-                    attributes[2] = attributes[2].replace( attributes[2], constants[attributes[2]]);
+                    attributes[2] = attributes[2].replace( attributes[2], 
+                                                           constants[attributes[2]]);
                 } else {
                     logger.log( "Line " + lineNumber + ": Constant " + 
                                 attributes[2] + " undefined", scriptName, "e" );
-                    attributes[2] = attributes[2].replace( attributes[2], "?" + attributes[2] );
+                    attributes[2] = attributes[2].replace( attributes[2], 
+                                                           "?" + attributes[2] );
                 }
                 element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
             }
@@ -252,6 +261,11 @@ function Parser () {
             output += element + "\n";
             levelIndex++;
             levels.push( tag );
+            if ( tag === "style" ) {
+                logger.log( "Line " + lineNumber + ": Skipping inside style markup", 
+                            scriptName );
+                inStyleMarkup = 1;
+            }
         // Singleton element declaration
         } else if ( res = elementDeclaration2Re.exec( line )) {
             var baseElement        = tagRe.exec( res[1]);
@@ -262,7 +276,6 @@ function Parser () {
             if ( !singletonElement ) {
                 logger.log( "Line " + lineNumber + ": " + res[1] + 
                             " is not a singleton element", scriptName, "e" );
-//                 process.exit( 1 );
             } else {
                 tag = res[1];
             }
@@ -270,11 +283,7 @@ function Parser () {
             logger.log( "Line " + lineNumber + ": Element: " + res[1] + 
                         ", level index " + levelIndex + " at " + res[0].trim(), 
                         scriptName );
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex ; i++ ) {
-                indentation += "    ";
-            }
-            var element = indentation + "<" + tag;
+            var element = indentation() + "<" + tag;
             // Find classes
             if ( res[1].match( elementClassRe )) {
                 var classAmount = 0;
@@ -302,36 +311,29 @@ function Parser () {
                 element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
             }
             while ( attributes = attributesConstRe.exec( res[2])) {
-                logger.log( "Line " + lineNumber + ": Const in attribute: " + attributes[1] + " = " + attributes[2], scriptName );
+                logger.log( "Line " + lineNumber + ": Const in attribute: " + 
+                            attributes[1] + " = " + attributes[2], scriptName );
                 if ( constants[attributes[2]]) {
                     logger.log( "Line " + lineNumber + ": Replacing @" + 
                                 attributes[2] + " by " + constants[attributes[2]], 
                                 scriptName );
-                    attributes[2] = attributes[2].replace( attributes[2], constants[attributes[2]]);
+                    attributes[2] = attributes[2].replace( attributes[2], 
+                                                           constants[attributes[2]]);
                 } else {
                     logger.log( "Line " + lineNumber + ": Constant " + 
                                 attributes[2] + " undefined", scriptName, "e" );
-                    attributes[2] = attributes[2].replace( attributes[2], "?" + attributes[2] );
+                    attributes[2] = attributes[2].replace( attributes[2], 
+                                                           "?" + attributes[2] );
                 }
                 element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
             }
             output += element + " />\n";
-        // Block end
-        } else if ( blockEndRe.exec( line )) {
-            logger.log( "Line " + lineNumber + ": Closing block", scriptName );
-            levelIndex--;
-            var element = levels.pop();
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex ; i++ ) {
-                indentation += "    ";
-            }
-            output += indentation + "</" + element + ">\n";
         // Constant used
         } else if ( line.match( constUseRe )) {
             while ( constant = constUseRe.exec( line )) {
                 if ( constants[constant[1]]) {
                     logger.log( "Line " + lineNumber + ": Replacing @" + 
-                                constant[1] + " by" + constants[constant[1]], 
+                                constant[1] + " by " + constants[constant[1]], 
                                 scriptName );
                     var line = line.replace( "@" + constant[1], constants[constant[1]]);
                 } else {
@@ -345,10 +347,6 @@ function Parser () {
         } else {
             logger.log( "Line " + lineNumber + ": Other", scriptName );
             // Indent text correctly
-            var indentation = "";
-            for ( var i = 0 ; i < levelIndex; i++ ) {
-                indentation += "    ";
-            }
             // Bold text
             while ( bold = boldRe.exec( line )) {
                 line = line.replace( "__" + bold[1] + "__", "<strong>" + 
@@ -377,7 +375,6 @@ function Parser () {
                 if ( singletonElement ) {
                     logger.log( "Line " + lineNumber + ": " + singletonElement[1] + 
                                 " is a singleton element", scriptName, "e" );
-//                     process.exit( 1 );
                 }
                 if ( !baseElement ) {
                     if ( nonStandardElement ) {
@@ -426,7 +423,7 @@ function Parser () {
                 element += ">" + elements[3] + "</" + tag + ">";
                 line = line.replace( elements[0], element );
             }
-            output += indentation + line.trim() + "\n";
+            output += indentation() + line.trim() + "\n";
         }
         return output;
     };
@@ -458,6 +455,14 @@ function Parser () {
     
     Parser.prototype.logToScreen = function( state ) {
         logger.setUseFile( !state );
+    }
+    
+    var indentation = function() {
+        var indentation = "";
+        for ( var i = 0 ; i < levelIndex ; i++ ) {
+            indentation += "    ";
+        }
+        return indentation;
     }
 };
 

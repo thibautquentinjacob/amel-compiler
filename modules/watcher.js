@@ -77,8 +77,9 @@ function Watcher ( files ) {
                     });
                 }
             } catch ( e ) {
-                logger.log( "File " + watchedFiles[i].name + " is no longer accessible: " + e, 
-                                scriptName, "e" );
+                logger.log( "File " + watchedFiles[i].name + 
+                            " is no longer accessible: " + e, 
+                            scriptName, "e" );
             }
         }
     }
