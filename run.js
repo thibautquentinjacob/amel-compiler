@@ -7,5 +7,5 @@ if ( process.argv.length > 2 ) {
         
     });
 } else {
-    console.log( "node run.js file.htbl" );
+    console.log( "node run.js file.amel" );
 }

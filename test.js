@@ -17,8 +17,8 @@ Fs.readdir( "tests", function( err, items ) {
         throw err
     }
     for ( var i = 0 ; i < items.length ; i++ ) {
-        // Only parse .htbl files
-        if ( Path.extname( items[i]) === ".htbl" ) {
+        // Only parse .amel files
+        if ( Path.extname( items[i]) === ".amel" ) {
             parser = new Parser();
             parser.parse( "./tests/" + items[i], compare );
         }
@@ -26,12 +26,13 @@ Fs.readdir( "tests", function( err, items ) {
 //     logger.log( "--------------------\n" + testPassed + " / " + testTotal + " tests passed" );
 });
 
+// Checks if the produce of the amel file compilation gave the expected output
 var compare = function( item ) {
     testTotal++;
-    var testName    = item.replace( ".htbl", "" );
+    var testName    = item.replace( ".amel", "" );
     testName        = item.replace( "./tests/", "" );
-    var resFile     = item.replace( "htbl", "res" );
-    var htmlFile    = item.replace( "htbl", "html" );
+    var resFile     = item.replace( "amel", "res" );
+    var htmlFile    = item.replace( "amel", "html" );
     var resContent  = "";
     var htmlContent = "";
     // If res file does not exists
@@ -40,7 +41,6 @@ var compare = function( item ) {
         resContent = Fs.readFileSync( resFile );
     } catch ( e ) {
         logger.log( testName + ": Res file ( " + resFile + " ) not accessible", scriptName, "e" );
-//         process.exit( 1 );
     }
     // If html file was not generated
     try {
