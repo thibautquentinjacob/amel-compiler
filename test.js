@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// Requirements
 var Fs         = require( "fs" );
 var Path       = require( "path" );
 var Parser     = require( "./modules/parser.js" );
@@ -11,7 +12,7 @@ var logger     = new Logger();
 var scriptName = __filename;
 scriptName     = scriptName.replace( __dirname + "/", "" );
 
-// Parse all test files and compare their md5 sum with the expected result MD5
+// For each files in the test folder, parse it and run compare callback on EOF.
 Fs.readdir( "tests", function( err, items ) {
     if ( err ) {
         throw err
@@ -26,7 +27,15 @@ Fs.readdir( "tests", function( err, items ) {
 //     logger.log( "--------------------\n" + testPassed + " / " + testTotal + " tests passed" );
 });
 
-// Checks if the produce of the amel file compilation gave the expected output
+/**
+ * Checks if the produce of the amel file compilation gave the expected output.
+ * 
+ * Provided an input amel file, check if a res and an html file with the same
+ * root name exist. Print an error if not. If both exist, compare the MD5 sum of
+ * the res (expected) file to the HTML (output) file. Print the result.
+ * @param Input file
+ * @return None
+ */
 var compare = function( item ) {
     testTotal++;
     var testName    = item.replace( ".amel", "" );
@@ -40,20 +49,25 @@ var compare = function( item ) {
         Fs.accessSync( resFile, Fs.F_OK );
         resContent = Fs.readFileSync( resFile );
     } catch ( e ) {
-        logger.log( testName + ": Res file ( " + resFile + " ) not accessible", scriptName, "e" );
+        logger.log( testName + ": Res file ( " + resFile + 
+                    " ) not accessible", scriptName, "e" );
     }
     // If html file was not generated
     try {
         Fs.accessSync( htmlFile, Fs.F_OK );
         htmlContent = Fs.readFileSync( htmlFile );
     } catch ( e ) {
-        logger.log( testName + ": HTML file (" + htmlFile + ") not accessible", scriptName, "e" );
-//         process.exit( 1 );
+        logger.log( testName + ": HTML file (" + htmlFile + 
+                    ") not accessible", scriptName, "e" );
     }
     
     // Compute and compare MD5 sums of the generated HTML file and expected result
-    var challengedMD5 = Crypto.createHash( "md5" ).update( htmlContent ).digest( "hex" );
-    var resMD5        = Crypto.createHash( "md5" ).update( resContent ).digest( "hex" );
+    var challengedMD5 = Crypto.createHash( "md5" )
+                              .update( htmlContent )
+                              .digest( "hex" );
+    var resMD5        = Crypto.createHash( "md5" )
+                              .update( resContent )
+                              .digest( "hex" );
     // Print result
     if ( challengedMD5 === resMD5 ) {
         logger.log( "- " + testName + " [\x1b[32m√\x1b[0m]", scriptName );

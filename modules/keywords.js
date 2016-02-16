@@ -1,13 +1,11 @@
-// Fromm https://developer.mozilla.org/
-
 /**
  * keywords class
  * 
- * Contains all authorized tags and attributes
+ * Contains all authorized tags and attributes based on
+ * https://developer.mozilla.org
  * @param None
  * @return None
  */
-
 function Keywords () {
     // HTML singleton tags such as img, br, etc...
     this.singletonTags = [
@@ -17,18 +15,19 @@ function Keywords () {
 
     // HTML tags with closing tags
     this.tags = [
-        "html", "head", "title", "body", "style", "nav", "header", "footer", "main",
-        "aside", "article", "section", "h1", "h2", "h3", "h4", "h5", "h6", "hgroup",
-        "div", "p", "pre", "blockquote", "ul", "ol", "li", "dl", "dt", "dd", "span",
-        "a", "em", "strong", "b", "i", "u", "s", "mark", "small", "del", "ins", "sup",
-        "sub", "dfn", "code", "var", "samp", "kdb", "q", "cite", "ruby", "rt", "rp",
-        "bdo", "bdi", "table", "caption", "tr", "td", "th", "thead", "tfoot", "tbody",
-        "colgroup", "figure", "figcaption", "map", "video", "audio",
-        "script", "noscript", "object", "iframe", "canvas", "abbr",
-        "address", "meter", "progress", "time", "form", "button", "textarea",
-        "select", "option", "optgroup", "label", "fieldset", "legend", "datalist",
-        "menu", "menuitem", "output", "details", "summary", "data", "time", "content",
-        "element", "shadow", "template", "keygen", "dialog", "rtc", "kbd"
+        "html", "head", "title", "body", "style", "nav", "header", "footer",
+        "main", "aside", "article", "section", "h1", "h2", "h3", "h4", "h5",
+        "h6", "hgroup", "div", "p", "pre", "blockquote", "ul", "ol", "li",
+        "dl", "dt", "dd", "span", "a", "em", "strong", "b", "i", "u", "s",
+        "mark", "small", "del", "ins", "sup", "sub", "dfn", "code", "var",
+        "samp", "kdb", "q", "cite", "ruby", "rt", "rp", "bdo", "bdi", "table",
+        "caption", "tr", "td", "th", "thead", "tfoot", "tbody", "colgroup",
+        "figure", "figcaption", "map", "video", "audio", "script", "noscript",
+        "object", "iframe", "canvas", "abbr", "address", "meter", "progress",
+        "time", "form", "button", "textarea", "select", "option", "optgroup",
+        "label", "fieldset", "legend", "datalist", "menu", "menuitem",
+        "output", "details", "summary", "data", "time", "content", "element",
+        "shadow", "template", "keygen", "dialog", "rtc", "kbd"
     ];
 
     // HTML non-standard tags
@@ -66,17 +65,17 @@ function Keywords () {
         "accept-charset":  ["form"],
         "accesskey":       ["global"],
         "action":          ["form"],
-        "align":           ["applet", "caption", "col", "colgroup", "hr", "iframe", 
-                            "img", "table", "tbody", "td", "tfoot", "th", "thead", 
-                            "tr"],
+        "align":           ["applet", "caption", "col", "colgroup", "hr",
+                            "iframe", "img", "table", "tbody", "td", "tfoot",
+                            "th", "thead", "tr"],
         "alt":             ["applet", "area", "img", "input"],
         "async":           ["script"],
         "autocomplete":    ["form", "input"],
         "autofocus":       ["button", "input", "keygen", "select", "textarea"],
         "autoplay":        ["audio", "video"],
         "autosave":        ["input"],
-        "bgcolor":         ["body", "col", "colgroup", "marquee", "table", "tbody", 
-                            "tfoot", "td", "th", "tr"],
+        "bgcolor":         ["body", "col", "colgroup", "marquee", "table",
+                            "tbody", "tfoot", "td", "th", "tr"],
         "border":          ["img", "object", "table"],
         "buffered":        ["audio", "video"],
         "challenge":       ["keygen"],
@@ -108,12 +107,13 @@ function Keywords () {
         "dropzone":        ["global"],
         "enctype":         ["form"],
         "for":             ["label", "output"],
-        "form":            ["button", "fieldset", "input", "keygen", "label", "meter", 
-                            "object", "output", "progress", "select", "textarea"],
+        "form":            ["button", "fieldset", "input", "keygen", "label",
+                            "meter", "object", "output", "progress", "select",
+                            "textarea"],
         "formaction":      ["input", "button"],
         "headers":         ["td", "th"],
-        "height":          ["canvas", "embed", "iframe", "img", "input", "object", 
-                            "video"],
+        "height":          ["canvas", "embed", "iframe", "img", "input",
+                            "object", "video"],
         "hidden":          ["global"],
         "high":            ["meter"],
         "href":            ["a", "area", "base", "link"],
@@ -166,8 +166,8 @@ function Keywords () {
         "sizes":           ["link", "img", "source"],
         "span":            ["col", "colgroup"],
         "spellcheck":      ["global"],
-        "src":             ["audio", "embed", "iframe", "img", "input", "script", 
-                            "source", "track", "video"],
+        "src":             ["audio", "embed", "iframe", "img", "input",
+                            "script", "source", "track", "video"],
         "srcdoc":          ["iframe"],
         "srclang":         ["track"],
         "srcset":          ["img"],
@@ -181,17 +181,17 @@ function Keywords () {
         "type":            ["button", "input", "command", "embed", "object", 
                             "script", "source", "style", "menu"],
         "usemap":          ["img", "input", "object"],
-        "value":           ["button", "option", "input", "li", "meter", "progress", 
-                            "param"],
-        "width":           ["canvas", "embed", "iframe", "img", "input", "object", 
-                            "video"],
+        "value":           ["button", "option", "input", "li", "meter",
+                            "progress", "param"],
+        "width":           ["canvas", "embed", "iframe", "img", "input",
+                            "object", "video"],
         "wrap":            ["textarea"],
     };
 
     // Attributes which should no longer be used in specific tags
     this.deprecatedAttributes = {
-        "align":      ["caption", "img", "table", "hr", "div", "h1", "h2", "h3", 
-                       "h4", "h5", "h6", "p"],
+        "align":      ["caption", "img", "table", "hr", "div", "h1", "h2",
+                       "h3", "h4", "h5", "h6", "p"],
         "alink":      ["body"],
         "background": ["body"],
         "bgcolor":    ["body", "table", "tr", "td", "th"],

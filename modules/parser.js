@@ -1,3 +1,11 @@
+/**
+ * Parser class
+ * 
+ * Parses file in Amel language.
+ * @param Nothing
+ * @return Nothing
+ */
+
 // Requirements
 var Keywords   = require( "./keywords.js" );
 var Logger     = require( "./logger.js" );
@@ -5,13 +13,6 @@ var Fs         = require( "fs" );
 var scriptName = __filename;
 scriptName     = scriptName.replace( __dirname + "/", "" );
 
-/**
- * Parser
- * 
- * Parses file in Amel language.
- * @param Nothing
- * @return Nothing
- */
 function Parser () {
     // Attributes
     var constants             = {};
@@ -24,7 +25,6 @@ function Parser () {
     var lineNumber            = 0;
     logger.setUseFile( true );
     logger.setFilePath( "./log.txt" );
-//     logger.setUseTimestamp( true );
 
     // Regular expressions
     var multilineComment      = /\/\*(.*)\*\//;
@@ -57,6 +57,12 @@ function Parser () {
     var deprecatedTagRe       = new RegExp( "(" + Object.keys( keywords.deprecatedTags ).join( "|" ) + 
                                 ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     
+    /**
+     * Parses input line by trying to match regular expressions. Depending on
+     * cases, output is generated and returned when matching is complete.
+     * @param Line to parse
+     * @return String output
+     */
     var parseLine = function( line ) {
         lineNumber++;
         var output = "";
@@ -428,6 +434,13 @@ function Parser () {
         return output;
     };
 
+    /**
+     * Check that input file is accessible. If it is, read it line by line,
+     * calling parseLine function on them. Calls callback on EOF.
+     * @param Input file path to amel file
+     * @param callback to run on EOF
+     * @return Nothing
+     */
     Parser.prototype.parse = function ( file, callback ) {
         try {
             Fs.accessSync( file, Fs.F_OK );
@@ -453,10 +466,20 @@ function Parser () {
         });
     };
     
+    /**
+     * Sets wether or not to log the output of the parser to screen.
+     * @param boolean state
+     * @return Nothing
+     */
     Parser.prototype.logToScreen = function( state ) {
         logger.setUseFile( !state );
     }
     
+    /**
+     * Returns the current indentation according to the current block depth.
+     * @param Nothing
+     * @return String containing spaces
+     */
     var indentation = function() {
         var indentation = "";
         for ( var i = 0 ; i < levelIndex ; i++ ) {
