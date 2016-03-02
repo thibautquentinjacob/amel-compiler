@@ -15,19 +15,19 @@ function Keywords () {
 
     // HTML tags with closing tags
     this.tags = [
-        "html", "head", "title", "body", "style", "nav", "header", "footer",
+        "abbr", "html", "header", "head", "title", "body", "style", "nav", "footer",
         "main", "aside", "article", "section", "h1", "h2", "h3", "h4", "h5",
-        "h6", "hgroup", "div", "p", "pre", "blockquote", "ul", "ol", "li",
-        "dl", "dt", "dd", "span", "a", "em", "strong", "b", "i", "u", "s",
+        "h6", "hgroup", "div", "pre", "blockquote", "ul", "ol", "li",
+        "dl", "dt", "dd", "span", "em", "strong",
         "mark", "small", "del", "ins", "sup", "sub", "dfn", "code", "var",
-        "samp", "kdb", "q", "cite", "ruby", "rt", "rp", "bdo", "bdi", "table",
-        "caption", "tr", "td", "th", "thead", "tfoot", "tbody", "colgroup",
+        "samp", "kdb", "cite", "ruby", "rtc", "rt", "rp", "bdo", "bdi", "table",
+        "caption", "tr", "td", "thead", "th", "tfoot", "tbody", "colgroup",
         "figure", "figcaption", "map", "video", "audio", "script", "noscript",
-        "object", "iframe", "canvas", "abbr", "address", "meter", "progress",
+        "object", "iframe", "canvas", "address", "meter", "progress",
         "time", "form", "button", "textarea", "select", "option", "optgroup",
-        "label", "fieldset", "legend", "datalist", "menu", "menuitem",
-        "output", "details", "summary", "data", "time", "content", "element",
-        "shadow", "template", "keygen", "dialog", "rtc", "kbd"
+        "label", "fieldset", "legend", "datalist", "menuitem", "menu",
+        "output", "details", "summary", "data", "content", "element",
+        "shadow", "template", "keygen", "dialog", "a", "b", "i", "u", "s", "q", "p"
     ];
 
     // HTML non-standard tags

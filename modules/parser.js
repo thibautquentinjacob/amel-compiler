@@ -23,7 +23,7 @@ function Parser () {
     var logger                = new Logger();
     var keywords              = new Keywords();
     var lineNumber            = 0;
-    verbose                   = 1;
+    verbose                   = 3;
     profiling                 = true;
     logger.setUseFile( true );
     logger.setFilePath( "./log.txt" );
@@ -35,10 +35,10 @@ function Parser () {
     var commentRe             = /^\s*\/\//;
     var ConstDefRe            = /@([a-zA-Z0-9_]+)\s*=\s*"(.*)"/;
     var constUseRe            = /@([a-zA-Z0-9_]+)/g;
-    var elementDeclarationRe  = /^\s*([^\.#][^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
-    var elementDeclaration2Re = /^\s*([^\.#][^ @\)\[\]]+)(\[.*\])/; // elements without values
+    var elementDeclarationRe  = /^\s*([^\.#][^ @\(\)\[\]]*)\s*(\[.*\])?\s*\(/;
+    var elementDeclaration2Re = /^\s*([^\.#][^ @\)\[\]]*)(\[.*\])/; // elements without values
     var implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
-    var oneLineDeclarationRe  = /([^\.#> ][^ @\(\)\[\]>]+)\s*(\[[^\(\)>]*\])?\s*\(([^\)]+)\)/g;
+    var oneLineDeclarationRe  = /([^\.#> ][^ @\(\)\[\]>]*)\s*(\[[^\(\)>]*\])?\s*\(([^\)]+)\)/g;
     var elementClassRe        = /\.([a-zA-Z0-9_\-]+)/g;
     var elementIdRe           = /#([a-zA-Z0-9_\-]+)/;
     var elementAttributesRe   = /([a-zA-Z_\-]+)\s*=\s*"([^,"]*)"/g;
@@ -52,9 +52,9 @@ function Parser () {
     var tagRe                 = new RegExp( "(" + keywords.tags.join( "|" ) + 
                                 ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     var singletonTagRe        = new RegExp( "(" + keywords.singletonTags.join( "|" ) + 
-                                ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
+                                ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     var nonStandardTagRe      = new RegExp( "(" + keywords.nonStandardTags.join( "|" ) + 
-                                ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
+                                ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     var deprecatedTagRe       = new RegExp( "(" + Object.keys( keywords.deprecatedTags ).join( "|" ) + 
                                 ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     
@@ -411,95 +411,103 @@ function Parser () {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + ": Other", scriptName );
             }
-            // Indent text correctly
-            // Bold text
-            while ( bold = boldRe.exec( line )) {
-                line = line.replace( "__" + bold[1] + "__", "<strong>" + 
-                                     bold[1] + "</strong>" );
-            }
-            // Italic text
-            while ( italic = italicRe.exec( line )) {
-                line = line.replace( "_" + italic[1] + "_", "<em>" + 
-                                     italic[1] + "</em>" );
-            }
-            // Stroke text
-            while ( stroke = strokeRe.exec( line )) {
-                line = line.replace( "--" + stroke[1] + "--", "<s>" + 
-                                     stroke[1] + "</s>" );
-            }
-            // One line element declaration
-            while ( elements = oneLineDeclarationRe.exec( line )) {
+            if ( singletonElement = singletonTagRe.exec( line )) {
                 if ( verbose === 3 ) {
-                    logger.log( "Line " + lineNumber + ": Element: " + elements[0] + 
-                                ", level index " + levelIndex + " at " + elements[0].trim(), 
-                                scriptName );
+                    logger.log( "Line " + lineNumber + ": Found " + 
+                                singletonElement[1], scriptName );
                 }
-                var baseElement        = tagRe.exec( elements[1]);
-                var singletonElement   = singletonTagRe.exec( elements[1]);
-                var nonStandardElement = nonStandardTagRe.exec( elements[1]);
-                var deprecatedElement  = deprecatedTagRe.exec( elements[1]);
-                var tag                = "";
-                if ( singletonElement && verbose > 0 ) {
-                    logger.log( "Line " + lineNumber + ": " + singletonElement[1] + 
-                                " is a singleton element", scriptName, "e" );
+                output += indentation() + "<" + singletonElement[1] + ">\n";
+            } else {
+                // Indent text correctly
+                // Bold text
+                while ( bold = boldRe.exec( line )) {
+                    line = line.replace( "__" + bold[1] + "__", "<strong>" + 
+                                         bold[1] + "</strong>" );
                 }
-                if ( !baseElement ) {
-                    if ( nonStandardElement ) {
-                        tag = nonStandardElement[1];
-                        if ( verbose > 1 ) {
-                            logger.log( "Line " + lineNumber + 
-                                        ": This element may not be supported in all browsers", 
-                                        "w" );
-                        }
-                    } else if ( deprecatedElement ) {
-                         tag = deprecatedElement[1];
-                         if ( verbose > 1 ) {
-                             logger.log( "Line " + lineNumber + ": " + tag + 
-                                         " element is deprecated.", scriptName, "w" );
-                        }
-                    } else {
-                        if ( verbose > 0 ) {
-                            logger.log( "Line " + lineNumber + 
-                                        ": Invalid element at line: " + line, scriptName, 
-                                        "e" );
-                        }
-                        return;
-                    }
-                } else { tag = baseElement[1] }
-                var element = "<" + tag;
-                // Find classes
-                if ( line.match( elementClassRe )) {
-                    var classAmount = 0;
-                    element += " class=\"";
-                    while ( classes = elementClassRe.exec( res[1])) {
-                        if ( classAmount === 0 ) {
-                            element += classes[1];
-                        } else {
-                            element += " " + classes[1];
-                        }
-                        classAmount++;
-                    }
-                    element += "\"";
+                // Italic text
+                while ( italic = italicRe.exec( line )) {
+                    line = line.replace( "_" + italic[1] + "_", "<em>" + 
+                                         italic[1] + "</em>" );
                 }
-                // Find ids
-                if ( line.match( elementIdRe )) {
-                    if ( id = elementIdRe.exec( element[1])) {
-                        element += " id=\"" + id[1] + "\"";
-                    }
+                // Stroke text
+                while ( stroke = strokeRe.exec( line )) {
+                    line = line.replace( "--" + stroke[1] + "--", "<s>" + 
+                                         stroke[1] + "</s>" );
                 }
-                // Find attributes
-                while ( attributes = elementAttributesRe.exec( elements[2])) {
+                // One line element declaration
+                while ( elements = oneLineDeclarationRe.exec( line )) {
                     if ( verbose === 3 ) {
-                        logger.log( "Line " + lineNumber + ": Attribute: " + 
-                                    attributes[1] + " = " + attributes[2], scriptName );
+                        logger.log( "Line " + lineNumber + ": Element: " + elements[0] + 
+                                    ", level index " + levelIndex + " at " + elements[0].trim(), 
+                                    scriptName );
                     }
-                    element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
-                    checkAttribute( attributes[1], tag );
+                    var baseElement        = tagRe.exec( elements[1]);
+                    var singletonElement   = singletonTagRe.exec( elements[1]);
+                    var nonStandardElement = nonStandardTagRe.exec( elements[1]);
+                    var deprecatedElement  = deprecatedTagRe.exec( elements[1]);
+                    var tag                = "";
+                    if ( singletonElement && verbose > 0 ) {
+                        logger.log( "Line " + lineNumber + ": " + singletonElement[1] + 
+                                    " is a singleton element", scriptName, "e" );
+                    }
+                    if ( !baseElement ) {
+                        if ( nonStandardElement ) {
+                            tag = nonStandardElement[1];
+                            if ( verbose > 1 ) {
+                                logger.log( "Line " + lineNumber + 
+                                            ": This element may not be supported in all browsers", 
+                                            "w" );
+                            }
+                        } else if ( deprecatedElement ) {
+                             tag = deprecatedElement[1];
+                             if ( verbose > 1 ) {
+                                 logger.log( "Line " + lineNumber + ": " + tag + 
+                                             " element is deprecated.", scriptName, "w" );
+                            }
+                        } else {
+                            if ( verbose > 0 ) {
+                                logger.log( "Line " + lineNumber + 
+                                            ": Invalid element at line: " + line, scriptName, 
+                                            "e" );
+                            }
+                            return;
+                        }
+                    } else { tag = baseElement[1] }
+                    var element = "<" + tag;
+                    // Find classes
+                    if ( line.match( elementClassRe )) {
+                        var classAmount = 0;
+                        element += " class=\"";
+                        while ( classes = elementClassRe.exec( res[1])) {
+                            if ( classAmount === 0 ) {
+                                element += classes[1];
+                            } else {
+                                element += " " + classes[1];
+                            }
+                            classAmount++;
+                        }
+                        element += "\"";
+                    }
+                    // Find ids
+                    if ( line.match( elementIdRe )) {
+                        if ( id = elementIdRe.exec( element[1])) {
+                            element += " id=\"" + id[1] + "\"";
+                        }
+                    }
+                    // Find attributes
+                    while ( attributes = elementAttributesRe.exec( elements[2])) {
+                        if ( verbose === 3 ) {
+                            logger.log( "Line " + lineNumber + ": Attribute: " + 
+                                        attributes[1] + " = " + attributes[2], scriptName );
+                        }
+                        element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
+                        checkAttribute( attributes[1], tag );
+                    }
+                    element += ">" + elements[3] + "</" + tag + ">";
+                    line = line.replace( elements[0], element );
                 }
-                element += ">" + elements[3] + "</" + tag + ">";
-                line = line.replace( elements[0], element );
+                output += indentation() + line.trim() + "\n";
             }
-            output += indentation() + line.trim() + "\n";
         }
         return output;
     };

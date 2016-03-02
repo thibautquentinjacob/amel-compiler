@@ -1,0 +1,3 @@
+<colgroup>
+    test
+</colgroup>
