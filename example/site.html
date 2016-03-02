@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>
+            Amel website exemple
+        </title>
+        <style>
+            body {
+                font-family: Helvetica neue;
+                font-size:   0.9em;
+                padding:     0;
+                position: relative;
+                top: -8px;
+                left: -8px;
+                width: 100%;
+                padding-top: 20px;
+            }
+            
+            .navbar {
+                padding: 15px;
+                width: 800px;
+                margin-left:auto;
+                margin-right: auto;
+            }
+            
+            .link {
+                color: rgba( 0, 0, 0, 0.5 );
+                font-weight: 300;
+                margin-right: 20px;
+                cursor: pointer;
+                padding-bottom: 3px;
+                border-bottom: 2px solid white;
+                transition: color 0.2s linear, border-bottom 0.2s linear;
+            }
+            
+            .link:hover {
+                color: rgba( 0, 0, 0, 1 );
+                border-bottom: 2px solid black;
+                transition: color 0.2s linear, border-bottom 0.2s linear;
+            }
+            
+            .link#selected {
+                font-weight: 500;
+                color: rgba( 0, 100, 150, 1.0 );
+            }
+            
+            .container {
+                font-family: Helvetica neue;
+                font-size: 2em;
+                padding: 30px;
+                width: 800px;
+                margin-left:auto;
+                margin-right: auto;
+            }
+            
+            .sub_container {
+                padding-top: 30px;
+                font-size: 0.45em;
+            	text-align: justify;
+                text-justify: inter-word;
+                font-weight: 300;
+            }
+            
+            img {
+                box-shadow: 0 0 5px rgba( 0, 0, 0, 0.5 );
+                border: 1px solid rgba( 0, 0, 0, 0.8 );
+                -webkit-filter: grayscale(100%);
+                filter: grayscale(100%);
+                transition: filter 0.2s linear;
+                margin-top: 10px;
+            }
+            
+            img:hover {
+                -webkit-filter: grayscale(0%);
+                filter: grayscale(0%);
+                transition: filter 0.2s linear;
+            }
+            
+            .picture {
+                font-family: Helvetica neue;
+                font-size: 0.8em;
+                font-weight: 500;
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div class="navbar">
+            <span class="link" id="selected">
+                The first link
+            </span>
+            <span class="link">
+                The second link
+            </span>
+            <span class="link">
+                The third
+            </span>
+            <span class="link">
+                ...and the fourth
+            </span>
+        </div>
+        <div class="container">
+            <span class="container_title">
+                Once upon lorem ipsum...
+            </span>
+            <div class="sub_container">
+                <div class="paragraph1">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vestibulum et dolor id tempor. Donec ac ligula eu est gravida condimentum nec sit amet leo. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque aliquet bibendum eleifend. Praesent commodo dignissim condimentum. Vestibulum dolor purus, lobortis sed varius sit amet, rutrum vitae neque. Nulla vitae molestie ipsum. Nullam at lectus lacus. Vestibulum magna elit, porta iaculis ante vel, lobortis elementum ligula.
+                </div>
+                <div class="paragraph2">
+                    Phasellus vitae auctor justo. Ut eu posuere leo. Vestibulum consequat euismod sem, suscipit ullamcorper sem iaculis at. Nam eget dolor diam. Vivamus id interdum lectus. In nec mattis nunc. Vestibulum aliquam sapien sodales vehicula molestie. Praesent vel molestie turpis. Nulla facilisi. Maecenas pharetra urna vitae ligula elementum, id tempus ipsum aliquam.
+                    
+                    <div class="picture">
+                        <span class="legend" style="float: left">
+                            <strong>Figure 1</strong>: I need a boat...
+                        </span>
+                        <br />
+                        <img src="i-should-buy-a-boat.jpg" width="40%" align="left" style="margin-right: 20px;" />
+                    </div>
+                </div>
+                
+                <div class="paragraph3">
+                    Proin neque enim, hendrerit eu arcu ullamcorper, tincidunt congue tortor. Fusce tincidunt sit amet risus vitae pellentesque. Nullam lacinia elementum feugiat. Sed in sem pretium massa pretium laoreet. Aliquam eu feugiat ipsum, a dapibus eros. Suspendisse a hendrerit leo. Nullam et imperdiet leo, id bibendum risus. Vivamus ut fringilla libero. Donec eu nulla diam. Maecenas faucibus ipsum eget pulvinar pellentesque. Proin at pellentesque felis. Pellentesque quis ante vel risus molestie mollis. Sed ac pellentesque risus, eu placerat augue. Pellentesque lobortis condimentum gravida. Fusce sed eros commodo mi condimentum gravida.
+                    
+                    <div class="picture">
+                        <span class="legend" style="float: right">
+                            <strong>Figure 2</strong>: What a nice coffee bean
+                        </span>
+                        <img src="HD-Wallpapers1_QlwttNW.jpeg" width="36%" align="right" style="margin-left: 20px;" />
+                    </div>
+                    
+                    <div align="">
+                        test
+                    </div>
+                    
+                    Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis ex dui, suscipit at efficitur quis, rutrum id justo. Etiam et ligula eget tellus condimentum fermentum id a leo. Curabitur elementum est urna, in malesuada urna fermentum nec. Aliquam felis purus, ultricies non purus a, pharetra venenatis ante.
+                    Nam lacinia leo dolor, nec accumsan dolor gravida a. Suspendisse potenti. In nisi nisi, maximus ut metus nec, porta tincidunt velit. Mauris scelerisque et tortor sed consectetur. Etiam lobortis ipsum ut pharetra fermentum. Aenean augue erat, faucibus eu turpis rhoncus, iaculis luctus eros. Proin vestibulum magna tempor, hendrerit nunc eu, vehicula elit. In hendrerit euismod nibh non pretium. Vivamus sollicitudin quis sem ut scelerisque. Maecenas quis neque nisl.
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
