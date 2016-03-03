@@ -40,8 +40,8 @@ var compare = function( item ) {
     testTotal++;
     var testName    = item.replace( ".amel", "" );
     testName        = item.replace( "./tests/", "" );
-    var resFile     = item.replace( "amel", "res" );
-    var htmlFile    = item.replace( "amel", "html" );
+    var resFile     = item.replace( ".amel", ".res" );
+    var htmlFile    = item.replace( ".amel", ".html" );
     var resContent  = "";
     var htmlContent = "";
     // If res file does not exists
