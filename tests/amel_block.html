@@ -3,8 +3,8 @@
 </div>
 
 <amel>
-    This is an amel code example.
-    div.amel (
-        test
-    )
+    This is an amel code example.<br>
+    div.amel (<br>
+        test<br>
+    )<br>
 </amel>

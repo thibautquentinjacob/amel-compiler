@@ -21,12 +21,12 @@ function Parser () {
     var inMultilineComment    = 0;
     var inStyleMarkup         = 0;
     var inAmelCode            = 0;
-    var amelLevel             = -1;
     var logger                = new Logger();
     var keywords              = new Keywords();
     var lineNumber            = 0;
     verbose                   = 3;
     profiling                 = true;
+    writeToFile               = true;
     logger.setUseFile( true );
     logger.setFilePath( "./log.txt" );
 
@@ -121,7 +121,7 @@ function Parser () {
                     output += indentation() + "</amel>\n";
                     inAmelCode = 0;
                 } else {
-                    output += line + "\n";
+                    output += line + "<br>\n";
                 }
             }
         /* If inside multiline comment ignore anything except closing 
@@ -176,7 +176,6 @@ function Parser () {
             }
             output += indentation() + "<amel>\n";
             inAmelCode = 1;
-            amelLevel  = levels.length + 1;
             levelIndex++;
             levels.push( "amel" );
         // Constant definition
@@ -199,7 +198,7 @@ function Parser () {
             }
             if ( inAmelCode ) {
                 levelIndex++;
-                output += line + "\n";
+                output += line + "<br>\n";
             } else {
                 var tag = "div";
                 // Indentation level
@@ -247,7 +246,7 @@ function Parser () {
             }
             if ( inAmelCode ) {
                 levelIndex++;
-                output += line + "\n";
+                output += line + "<br>\n";
             } else {
                 var baseElement        = tagRe.exec( res[1]);
                 var singletonElement   = singletonTagRe.exec( res[1]);
@@ -352,7 +351,7 @@ function Parser () {
         } else if ( res = elementDeclaration2Re.exec( line )) {
             if ( inAmelCode ) {
                 levelIndex++;
-                output += line + "\n";
+                output += line + "<br>\n";
             } else {
                 var baseElement        = tagRe.exec( res[1]);
                 var singletonElement   = singletonTagRe.exec( res[1]);
@@ -546,7 +545,11 @@ function Parser () {
                     element += ">" + elements[3] + "</" + tag + ">";
                     line = line.replace( elements[0], element );
                 }
-                output += indentation() + line.trim() + "\n";
+                if ( !inAmelCode ) {
+                    output += indentation() + line.trim() + "\n";
+                } else {
+                    output += indentation() + line.trim() + "<br>\n";                    
+                }
             }
         }
         return output;
@@ -590,13 +593,15 @@ function Parser () {
                             " ms", scriptName );
             }
             // Write generated output to file
-            Fs.writeFileSync( outputFile, output );
-            // Should we measure the time spent to write the output?
-            if ( profiling ) {
-                var timeWroteOutput = Date.now();
-                logger.log( "Writing output took " + 
-                            ( timeWroteOutput - timeParseEnd ) + " ms", scriptName );
-            }
+            if ( writeToFile ) {
+                Fs.writeFileSync( outputFile, output );
+                // Should we measure the time spent to write the output?
+                if ( profiling ) {
+                    var timeWroteOutput = Date.now();
+                    logger.log( "Writing output took " + 
+                                ( timeWroteOutput - timeParseEnd ) + " ms", scriptName );
+                }
+            }            
             callback( file );
             return output;
         });

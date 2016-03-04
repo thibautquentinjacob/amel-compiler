@@ -3,8 +3,8 @@
 // Requirements
 var Fs         = require( "fs" );
 var Path       = require( "path" );
-var Parser     = require( "./modules/parser.js" );
 var Crypto     = require( "crypto" );
+var Parser     = require( "./modules/parser.js" );
 var Logger     = require( "./modules/logger.js" );
 var testTotal  = 0;
 var testPassed = 0;

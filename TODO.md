@@ -4,10 +4,11 @@ Parser.js :
 - Warn when attribute is not supported in current tag
 - Warn when using some deprecated or non standard tags
 - Some tags such as "applet" are not matched, matching instead "a".
-- Lines inside code block should not be parsed
+√ Lines inside code block should not be parsed
     @amel:(
         Do not parse this
     )
+- In amel code blocks, replace '\n' by <br>
 - Authorize inclusion of other amel documents
     @include:(
         variables.amel
