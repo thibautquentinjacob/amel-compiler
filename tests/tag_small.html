@@ -1,3 +1,3 @@
 <small>
-    test
+    test<br>
 </small>

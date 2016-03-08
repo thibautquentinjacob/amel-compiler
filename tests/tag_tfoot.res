@@ -1,3 +1,3 @@
 <tfoot>
-    test
+    test<br>
 </tfoot>

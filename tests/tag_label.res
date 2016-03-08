@@ -1,3 +1,3 @@
 <label>
-    test
+    test<br>
 </label>

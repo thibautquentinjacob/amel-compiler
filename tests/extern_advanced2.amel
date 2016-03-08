@@ -1,0 +1,7 @@
+@extern: (
+    var fs = require( "fs" );
+    fs.readdir( "/Users/thibautjacob", function( err, files ) {
+        return { file: files[0] };           
+    });
+)
+@file

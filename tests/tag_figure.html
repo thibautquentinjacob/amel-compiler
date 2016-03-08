@@ -1,3 +1,3 @@
 <figure>
-    test
+    test<br>
 </figure>

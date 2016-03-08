@@ -1,6 +1,6 @@
 <div class="implicit1">
-    test
+    test<br>
     <div class="implicit2">
-        test
+        test<br>
     </div>
 </div>

@@ -1,3 +1,3 @@
 <figcaption>
-    test
+    test<br>
 </figcaption>

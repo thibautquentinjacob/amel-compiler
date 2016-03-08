@@ -1,3 +1,3 @@
 <optgroup>
-    test
+    test<br>
 </optgroup>

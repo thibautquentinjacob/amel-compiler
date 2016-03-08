@@ -1,3 +1,3 @@
 <colgroup>
-    test
+    test<br>
 </colgroup>

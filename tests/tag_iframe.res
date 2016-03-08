@@ -1,3 +1,4 @@
-<iframe>
-    test
-</iframe>
+<div>
+    <iframe src="test">
+    </iframe>
+</div>

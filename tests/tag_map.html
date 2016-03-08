@@ -1,3 +1,3 @@
 <map>
-    test
+    test<br>
 </map>

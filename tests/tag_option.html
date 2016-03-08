@@ -1,3 +1,3 @@
 <option>
-    test
+    test<br>
 </option>

@@ -1,0 +1,7 @@
+@extern: (
+    var x = 2;
+    var y = 3;
+    var res = x + y;
+    return { res: res };
+)
+There are @res entries (@x + @y).

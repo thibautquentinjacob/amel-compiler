@@ -1,3 +1,3 @@
 <noscript>
-    test
+    test<br>
 </noscript>

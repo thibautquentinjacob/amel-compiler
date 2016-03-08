@@ -1,0 +1,9 @@
+@extern: (
+    var list = [ 1, 2, 3, 4, 5, 6 ];
+    var sum = list.reduce(
+        function( prec, curr, index, list ) {
+            return prec + curr;
+        }, 0 );
+    return { sum: sum };
+)
+The sum is @sum

@@ -1,3 +1,3 @@
 <samp>
-    test
+    test<br>
 </samp>

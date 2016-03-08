@@ -1,3 +1,3 @@
 <caption>
-    test
+    test<br>
 </caption>

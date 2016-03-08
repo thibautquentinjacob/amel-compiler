@@ -1,1 +1,1 @@
-This is some <strong>bold</strong> text.
+This is some <strong>bold</strong> text.<br>

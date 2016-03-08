@@ -1,3 +1,3 @@
 <thead>
-    test
+    test<br>
 </thead>

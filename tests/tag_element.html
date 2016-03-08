@@ -1,3 +1,3 @@
 <element>
-    test
+    test<br>
 </element>

@@ -1,1 +1,1 @@
-This is some <s>stroke</s> text
+This is some <s>stroke</s> text<br>

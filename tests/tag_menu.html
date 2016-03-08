@@ -1,3 +1,3 @@
 <menu>
-    test
+    test<br>
 </menu>

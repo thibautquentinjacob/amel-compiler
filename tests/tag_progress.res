@@ -1,3 +1,3 @@
 <progress>
-    test
+    test<br>
 </progress>

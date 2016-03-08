@@ -1,3 +1,3 @@
 <var>
-    test
+    test<br>
 </var>

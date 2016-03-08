@@ -1,3 +1,3 @@
 <textarea>
-    test
+    test<br>
 </textarea>

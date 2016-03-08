@@ -1,3 +1,3 @@
 <legend>
-    test
+    test<br>
 </legend>

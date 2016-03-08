@@ -1,3 +1,3 @@
 <menuitem>
-    test
+    test<br>
 </menuitem>

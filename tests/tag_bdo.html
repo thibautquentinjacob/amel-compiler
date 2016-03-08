@@ -1,3 +1,3 @@
 <bdo>
-    test
+    test<br>
 </bdo>

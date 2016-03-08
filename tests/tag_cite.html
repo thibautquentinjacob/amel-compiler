@@ -1,3 +1,3 @@
 <cite>
-    test
+    test<br>
 </cite>

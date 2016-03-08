@@ -1,3 +1,3 @@
 <select>
-    test
+    test<br>
 </select>

@@ -1,3 +1,3 @@
 <object>
-    test
+    test<br>
 </object>

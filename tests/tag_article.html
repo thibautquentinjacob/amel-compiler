@@ -1,3 +1,3 @@
 <article>
-    test
+    test<br>
 </article>

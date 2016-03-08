@@ -1,3 +1,3 @@
 <output>
-    test
+    test<br>
 </output>

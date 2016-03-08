@@ -1,3 +1,3 @@
 <ruby>
-    test
+    test<br>
 </ruby>

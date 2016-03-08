@@ -1,3 +1,3 @@
 <canvas>
-    test
+    test<br>
 </canvas>

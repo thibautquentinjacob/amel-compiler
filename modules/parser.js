@@ -21,6 +21,8 @@ function Parser () {
     var inMultilineComment    = 0;
     var inStyleMarkup         = 0;
     var inAmelCode            = 0;
+    var inExtern              = 0;
+    var externCodeBuffer      = "";
     var logger                = new Logger();
     var keywords              = new Keywords();
     var lineNumber            = 0;
@@ -36,7 +38,7 @@ function Parser () {
     var multilineCommentERe   = /(.*)\*\/\s*$/;
     var commentRe             = /^\s*\/\//;
     var ConstDefRe            = /@([a-zA-Z0-9_]+)\s*=\s*"(.*)"/;
-    var constUseRe            = /@([a-zA-Z0-9_]+)/g;
+    var constUseRe            = /@([a-zA-Z0-9_]+)/;
     var elementDeclarationRe  = /^\s*([^\.#][^ @\(\)\[\]]*)\s*(\[.*\])?\s*\(/;
     var elementDeclaration2Re = /^\s*([^\.#][^ @\)\[\]]*)(\[.*\])/; // elements without values
     var implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
@@ -53,13 +55,14 @@ function Parser () {
     var blockEndRe            = /\)\s*$/;
     var tagRe                 = new RegExp( "(" + keywords.tags.join( "|" ) + 
                                 ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
-    var singletonTagRe        = new RegExp( "(" + keywords.singletonTags.join( "|" ) + 
+    var singletonTagRe        = new RegExp( "^[ \t]*(" + keywords.singletonTags.join( "|" ) + 
                                 ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     var nonStandardTagRe      = new RegExp( "(" + keywords.nonStandardTags.join( "|" ) + 
                                 ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     var deprecatedTagRe       = new RegExp( "(" + Object.keys( keywords.deprecatedTags ).join( "|" ) + 
                                 ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?" );
     var amelCodeRe            = /@amel\s*:\s*\(/;
+    var externRe              = /@extern\s*:\s*\(/;
     
     /**
      * Parses input line by trying to match regular expressions. Depending on
@@ -103,7 +106,8 @@ function Parser () {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + ": Closing block", scriptName );
             }
-            if ( !inAmelCode ) {
+            // If standard code
+            if ( !inAmelCode && !inExtern ) {
                 var element = levels.pop();
                 output += indentation() + "</" + element + ">\n";
                 if ( inStyleMarkup && element === "style" ) {
@@ -113,9 +117,28 @@ function Parser () {
                     }
                     inStyleMarkup = 0;
                 }
-            }
-            
-            if ( inAmelCode ) {
+            // If in an external code
+            } else if ( inExtern ) {
+                if ( levels[levelIndex] === "extern" ) {
+                    levels.pop();
+                    if ( verbose === 3 ) {
+                        logger.log( "Line " + lineNumber + ": Evaluating code buffer:\n" + 
+                                    externCodeBuffer, scriptName );
+                    }
+//                     output += eval( externCodeBuffer ) + "\n";
+                    var out = eval( "function fun() { " + externCodeBuffer + "}; fun()" );
+                    // export returned vars to environment
+                    for ( var key in out ) {
+                        logger.log( "Exporting constant " + key + " = " + out[key], 
+                                    scriptName );
+                        constants[key] = out[key];
+                    }
+                    inExtern = 0;
+                } else {
+                    output += line + "<br>\n";
+                }
+            // If in amel code block
+            } else {
                 if ( levels[levelIndex] === "amel" ) {
                     levels.pop();
                     output += indentation() + "</amel>\n";
@@ -126,7 +149,10 @@ function Parser () {
             }
         /* If inside multiline comment ignore anything except closing 
            multiline comment */
-        } else if ( !inAmelCode && ( inMultilineComment || inStyleMarkup )) {
+        } else if ( !inAmelCode && !inExtern && ( inMultilineComment || inStyleMarkup )) {
+            if ( verbose === 3 ) {
+                logger.log( "Line " + lineNumber + ": Inside multiline comment", scriptName );
+            }
             if ( inStyleMarkup ) {
                 // Check for constant use within the style markup
                 while ( constant = constUseRe.exec( line )) {
@@ -150,7 +176,7 @@ function Parser () {
                 output += indentation() + "  " + line + "\n";   
             }
         // multiline comment start
-        } else if ( !inAmelCode && ( res = multilineCommentSRe.exec( line ))) {
+        } else if ( !inAmelCode && !inExtern && ( res = multilineCommentSRe.exec( line ))) {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + 
                             ": Found multiline comment start", scriptName );
@@ -162,7 +188,7 @@ function Parser () {
             inMultilineComment = 1;
             output += indentation() + "<!--" + res[1] + "\n";
         // Skip line if one line comment
-        } else if ( !inAmelCode && ( commentRe.exec( line ))) {
+        } else if ( !inAmelCode && !inExtern && ( commentRe.exec( line ))) {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + ": Comment " + line, scriptName );
             }
@@ -178,8 +204,18 @@ function Parser () {
             inAmelCode = 1;
             levelIndex++;
             levels.push( "amel" );
+        // External code block
+        } else if ( !inAmelCode && ( res = externRe.exec( line ))) {
+            if ( verbose === 3 ) {
+                logger.log( "Line " + lineNumber + ": Found extern code block", 
+                            scriptName );
+            }
+            inExtern = 1;
+            levelIndex++;
+            levels.push( "extern" );
+            externCodeBuffer = "";
         // Constant definition
-        } else if ( !inAmelCode && ( res = ConstDefRe.exec( line ))) {
+        } else if ( !inAmelCode && !inExtern && ( res = ConstDefRe.exec( line ))) {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + ": Const " + res[1] + " = " + 
                             res[2], scriptName );
@@ -191,7 +227,7 @@ function Parser () {
             }
             constants[res[1]] = res[2];
         // Implicit declaration
-        } else if ( res = implicitDeclarationRe.exec( line )) {
+        } else if ( !inAmelCode && !inExtern && ( res = implicitDeclarationRe.exec( line ))) {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + ": Implicit declaration: " + 
                             res[1], scriptName );
@@ -238,7 +274,7 @@ function Parser () {
                 levels.push( tag );
             }
         // Element declaration
-        } else if ( res = elementDeclarationRe.exec( line )) {
+        } else if ( !inExtern && ( res = elementDeclarationRe.exec( line ))) {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + ": Element: " + res[1] + 
                             ", level index " + levelIndex + " at " + res[0].trim(), 
@@ -349,6 +385,9 @@ function Parser () {
             }
         // Singleton element declaration
         } else if ( res = elementDeclaration2Re.exec( line )) {
+            if ( verbose === 3 ) {
+                logger.log( "Line " + lineNumber + ": Singleton tag", scriptName );
+            }
             if ( inAmelCode ) {
                 levelIndex++;
                 output += line + "<br>\n";
@@ -428,7 +467,10 @@ function Parser () {
             }
         // Constant used
         } else if ( line.match( constUseRe )) {
-            while ( constant = constUseRe.exec( line )) {
+            if ( verbose === 3 ) {
+                logger.log( "Line " + lineNumber + ": Constant used", scriptName );
+            }
+            while ( !inAmelCode && ( constant = constUseRe.exec( line ))) {
                 if ( constants[constant[1]]) {
                     if ( verbose === 3 ) {
                         logger.log( "Line " + lineNumber + ": Replacing @" + 
@@ -444,7 +486,7 @@ function Parser () {
                     var line = line.replace( "@" + constant[1], "?" + constant[1] );
                 }
             }
-            output += line + "\n";
+            output += line + "<br>\n";
         // Everything else
         } else {
             if ( verbose === 3 ) {
@@ -455,100 +497,102 @@ function Parser () {
                     logger.log( "Line " + lineNumber + ": Found " + 
                                 singletonElement[1], scriptName );
                 }
-                output += indentation() + "<" + singletonElement[1] + ">\n";
+                output += indentation() + "<" + singletonElement[1] + "><br>\n";
             } else {
-                // Indent text correctly
-                // Bold text
-                while ( bold = boldRe.exec( line )) {
-                    line = line.replace( "__" + bold[1] + "__", "<strong>" + 
-                                         bold[1] + "</strong>" );
-                }
-                // Italic text
-                while ( italic = italicRe.exec( line )) {
-                    line = line.replace( "_" + italic[1] + "_", "<em>" + 
-                                         italic[1] + "</em>" );
-                }
-                // Stroke text
-                while ( stroke = strokeRe.exec( line )) {
-                    line = line.replace( "--" + stroke[1] + "--", "<s>" + 
-                                         stroke[1] + "</s>" );
-                }
-                // One line element declaration
-                while ( elements = oneLineDeclarationRe.exec( line )) {
-                    if ( verbose === 3 ) {
-                        logger.log( "Line " + lineNumber + ": Element: " + elements[0] + 
-                                    ", level index " + levelIndex + " at " + elements[0].trim(), 
-                                    scriptName );
+                if ( !inExtern && !inAmelCode ) {
+                    // Indent text correctly
+                    // Bold text
+                    while ( bold = boldRe.exec( line )) {
+                        line = line.replace( "__" + bold[1] + "__", "<strong>" + 
+                                             bold[1] + "</strong>" );
                     }
-                    var baseElement        = tagRe.exec( elements[1]);
-                    var singletonElement   = singletonTagRe.exec( elements[1]);
-                    var nonStandardElement = nonStandardTagRe.exec( elements[1]);
-                    var deprecatedElement  = deprecatedTagRe.exec( elements[1]);
-                    var tag                = "";
-                    if ( singletonElement && verbose > 0 ) {
-                        logger.log( "Line " + lineNumber + ": " + singletonElement[1] + 
-                                    " is a singleton element", scriptName, "e" );
+                    // Italic text
+                    while ( italic = italicRe.exec( line )) {
+                        line = line.replace( "_" + italic[1] + "_", "<em>" + 
+                                             italic[1] + "</em>" );
                     }
-                    if ( !baseElement ) {
-                        if ( nonStandardElement ) {
-                            tag = nonStandardElement[1];
-                            if ( verbose > 1 ) {
-                                logger.log( "Line " + lineNumber + 
-                                            ": This element may not be supported in all browsers", 
-                                            "w" );
-                            }
-                        } else if ( deprecatedElement ) {
-                             tag = deprecatedElement[1];
-                             if ( verbose > 1 ) {
-                                 logger.log( "Line " + lineNumber + ": " + tag + 
-                                             " element is deprecated.", scriptName, "w" );
-                            }
-                        } else {
-                            if ( verbose > 0 ) {
-                                logger.log( "Line " + lineNumber + 
-                                            ": Invalid element at line: " + line, scriptName, 
-                                            "e" );
-                            }
-                            return;
-                        }
-                    } else { tag = baseElement[1] }
-                    var element = "<" + tag;
-                    // Find classes
-                    if ( line.match( elementClassRe )) {
-                        var classAmount = 0;
-                        element += " class=\"";
-                        while ( classes = elementClassRe.exec( res[1])) {
-                            if ( classAmount === 0 ) {
-                                element += classes[1];
-                            } else {
-                                element += " " + classes[1];
-                            }
-                            classAmount++;
-                        }
-                        element += "\"";
+                    // Stroke text
+                    while ( stroke = strokeRe.exec( line )) {
+                        line = line.replace( "--" + stroke[1] + "--", "<s>" + 
+                                             stroke[1] + "</s>" );
                     }
-                    // Find ids
-                    if ( line.match( elementIdRe )) {
-                        if ( id = elementIdRe.exec( element[1])) {
-                            element += " id=\"" + id[1] + "\"";
-                        }
-                    }
-                    // Find attributes
-                    while ( attributes = elementAttributesRe.exec( elements[2])) {
+                    // One line element declaration
+                    while ( elements = oneLineDeclarationRe.exec( line )) {
                         if ( verbose === 3 ) {
-                            logger.log( "Line " + lineNumber + ": Attribute: " + 
-                                        attributes[1] + " = " + attributes[2], scriptName );
+                            logger.log( "Line " + lineNumber + ": Element: " + elements[0] + 
+                                        ", level index " + levelIndex + " at " + elements[0].trim(), 
+                                        scriptName );
                         }
-                        element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
-                        checkAttribute( attributes[1], tag );
+                        var baseElement        = tagRe.exec( elements[1]);
+                        var singletonElement   = singletonTagRe.exec( elements[1]);
+                        var nonStandardElement = nonStandardTagRe.exec( elements[1]);
+                        var deprecatedElement  = deprecatedTagRe.exec( elements[1]);
+                        var tag                = "";
+                        if ( singletonElement && verbose > 0 ) {
+                            logger.log( "Line " + lineNumber + ": " + singletonElement[1] + 
+                                        " is a singleton element", scriptName, "e" );
+                        }
+                        if ( !baseElement ) {
+                            if ( nonStandardElement ) {
+                                tag = nonStandardElement[1];
+                                if ( verbose > 1 ) {
+                                    logger.log( "Line " + lineNumber + 
+                                                ": This element may not be supported in all browsers", 
+                                                "w" );
+                                }
+                            } else if ( deprecatedElement ) {
+                                 tag = deprecatedElement[1];
+                                 if ( verbose > 1 ) {
+                                     logger.log( "Line " + lineNumber + ": " + tag + 
+                                                 " element is deprecated.", scriptName, "w" );
+                                }
+                            } else {
+                                if ( verbose > 0 ) {
+                                    logger.log( "Line " + lineNumber + 
+                                                ": Invalid element at line: " + line, scriptName, 
+                                                "e" );
+                                }
+                                return;
+                            }
+                        } else { tag = baseElement[1] }
+                        var element = "<" + tag;
+                        // Find classes
+                        if ( line.match( elementClassRe )) {
+                            var classAmount = 0;
+                            element += " class=\"";
+                            while ( classes = elementClassRe.exec( elements[1])) {
+                                if ( classAmount === 0 ) {
+                                    element += classes[1];
+                                } else {
+                                    element += " " + classes[1];
+                                }
+                                classAmount++;
+                            }
+                            element += "\"";
+                        }
+                        // Find ids
+                        if ( line.match( elementIdRe )) {
+                            if ( id = elementIdRe.exec( element[1])) {
+                                element += " id=\"" + id[1] + "\"";
+                            }
+                        }
+                        // Find attributes
+                        while ( attributes = elementAttributesRe.exec( elements[2])) {
+                            if ( verbose === 3 ) {
+                                logger.log( "Line " + lineNumber + ": Attribute: " + 
+                                            attributes[1] + " = " + attributes[2], scriptName );
+                            }
+                            element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
+                            checkAttribute( attributes[1], tag );
+                        }
+                        element += ">" + elements[3] + "</" + tag + ">";
+                        line = line.replace( elements[0], element );
                     }
-                    element += ">" + elements[3] + "</" + tag + ">";
-                    line = line.replace( elements[0], element );
                 }
-                if ( !inAmelCode ) {
-                    output += indentation() + line.trim() + "\n";
-                } else {
+                if ( !inExtern ) {
                     output += indentation() + line.trim() + "<br>\n";                    
+                } else {
+                    externCodeBuffer += line.trim() + "\n";
                 }
             }
         }

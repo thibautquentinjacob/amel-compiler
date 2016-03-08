@@ -1,3 +1,3 @@
 <del>
-    test
+    test<br>
 </del>

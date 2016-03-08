@@ -1,3 +1,3 @@
 <datalist>
-    test
+    test<br>
 </datalist>

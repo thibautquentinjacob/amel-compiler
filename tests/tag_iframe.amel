@@ -1,3 +1,4 @@
-iframe (
-    test
+div (
+    iframe[src="test"] (
+    )
 )
