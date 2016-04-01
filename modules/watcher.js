@@ -94,7 +94,8 @@ function Watcher ( files ) {
                 // Check the file last modification Date
                 var stats = Fs.statSync( watchedFiles[i].name );
                 if ( stats.mtime > watchedFiles[i].time ) {
-                    logger.log( "Refreshing " + watchedFiles[i].name, scriptName );
+                    logger.log( "Refreshing " + watchedFiles[i].name,
+                                scriptName );
                     watchedFiles[i].time = stats.mtime;
                     var parser           = new Parser();
                     parser.logToScreen( true );

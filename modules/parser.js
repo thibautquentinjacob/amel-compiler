@@ -84,7 +84,8 @@ function Parser () {
         // multiline comment end
         } else if ( res = multilineCommentERe.exec( line )) {
             if ( verbose === 3 ) {
-                logger.log( "Line " + lineNumber + ": Found multiline comment end", 
+                logger.log( "Line " + lineNumber + 
+                            ": Found multiline comment end", 
                             scriptName );
             }
             if ( res[1] !== "" ) {
@@ -104,7 +105,8 @@ function Parser () {
         } else if ( blockEndRe.exec( line )) {
             levelIndex--;
             if ( verbose === 3 ) {
-                logger.log( "Line " + lineNumber + ": Closing block", scriptName );
+                logger.log( "Line " + lineNumber + ": Closing block",
+                            scriptName );
             }
             // If standard code
             if ( !inAmelCode && !inExtern ) {
@@ -112,7 +114,8 @@ function Parser () {
                 output += indentation() + "</" + element + ">\n";
                 if ( inStyleMarkup && element === "style" ) {
                     if ( verbose === 3 ) {
-                        logger.log( "Line " + lineNumber + ": No longer in style markup", 
+                        logger.log( "Line " + lineNumber + 
+                                    ": No longer in style markup", 
                                     scriptName );
                     }
                     inStyleMarkup = 0;
@@ -122,15 +125,17 @@ function Parser () {
                 if ( levels[levelIndex] === "extern" ) {
                     levels.pop();
                     if ( verbose === 3 ) {
-                        logger.log( "Line " + lineNumber + ": Evaluating code buffer:\n" + 
+                        logger.log( "Line " + lineNumber + 
+                                    ": Evaluating code buffer:\n" + 
                                     externCodeBuffer, scriptName );
                     }
 //                     output += eval( externCodeBuffer ) + "\n";
-                    var out = eval( "function fun() { " + externCodeBuffer + "}; fun()" );
+                    var out = eval( "function fun() { " + externCodeBuffer +
+                                    "}; fun()" );
                     // export returned vars to environment
                     for ( var key in out ) {
-                        logger.log( "Exporting constant " + key + " = " + out[key], 
-                                    scriptName );
+                        logger.log( "Exporting constant " + key + 
+                                    " = " + out[key], scriptName );
                         constants[key] = out[key];
                     }
                     inExtern = 0;
@@ -149,26 +154,32 @@ function Parser () {
             }
         /* If inside multiline comment ignore anything except closing 
            multiline comment */
-        } else if ( !inAmelCode && !inExtern && ( inMultilineComment || inStyleMarkup )) {
+        } else if ( !inAmelCode && !inExtern && 
+                    ( inMultilineComment || inStyleMarkup )) {
             if ( verbose === 3 ) {
-                logger.log( "Line " + lineNumber + ": Inside multiline comment", scriptName );
+                logger.log( "Line " + lineNumber + 
+                            ": Inside multiline comment", scriptName );
             }
             if ( inStyleMarkup ) {
                 // Check for constant use within the style markup
                 while ( constant = constUseRe.exec( line )) {
                     if ( constants[constant[1]]) {
                         if ( verbose === 3 ) {
-                            logger.log( "Line " + lineNumber + ": Replacing @" + 
-                                        constant[1] + " by " + constants[constant[1]], 
+                            logger.log( "Line " + lineNumber + 
+                                        ": Replacing @" + constant[1] + 
+                                        " by " + constants[constant[1]], 
                                         scriptName );
                         }
-                        var line = line.replace( "@" + constant[1], constants[constant[1]]);
+                        var line = line.replace( "@" + constant[1],
+                                                 constants[constant[1]]);
                     } else {
                         if ( verbose > 0 ) {
                             logger.log( "Line " + lineNumber + ": Constant " + 
-                                        constant[1] + " undefined", scriptName, "e" );
+                                        constant[1] + " undefined", scriptName,
+                                        "e" );
                         }
-                        var line = line.replace( "@" + constant[1], "?" + constant[1] );
+                        var line = line.replace( "@" + constant[1], 
+                                                 "?" + constant[1] );
                     }
                 }
                 output += line + "\n";
@@ -176,24 +187,27 @@ function Parser () {
                 output += indentation() + "  " + line + "\n";   
             }
         // multiline comment start
-        } else if ( !inAmelCode && !inExtern && ( res = multilineCommentSRe.exec( line ))) {
+        } else if ( !inAmelCode && !inExtern && 
+                    ( res = multilineCommentSRe.exec( line ))) {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + 
                             ": Found multiline comment start", scriptName );
             }
             if ( inMultilineComment && verbose > 1 ) {
                 logger.log( "Line " + lineNumber + 
-                            ": Already in a multiline comment", scriptName, "w" );
+                            ": Already in a multiline comment", 
+                            scriptName, "w" );
             }
             inMultilineComment = 1;
             output += indentation() + "<!--" + res[1] + "\n";
         // Skip line if one line comment
         } else if ( !inAmelCode && !inExtern && ( commentRe.exec( line ))) {
             if ( verbose === 3 ) {
-                logger.log( "Line " + lineNumber + ": Comment " + line, scriptName );
+                logger.log( "Line " + lineNumber + ": Comment " + line,
+                             scriptName );
             }
-            output += indentation() + "<!--" + line.trim().replace( /^\/\//, "" ) + 
-                      " -->\n";
+            output += indentation() + "<!--" + 
+                      line.trim().replace( /^\/\//, "" ) + " -->\n";
         // Amel code block
         } else if ( res = amelCodeRe.exec( line )) {
             if ( verbose === 3 ) {
@@ -215,10 +229,11 @@ function Parser () {
             levels.push( "extern" );
             externCodeBuffer = "";
         // Constant definition
-        } else if ( !inAmelCode && !inExtern && ( res = ConstDefRe.exec( line ))) {
+        } else if ( !inAmelCode && !inExtern && 
+                    ( res = ConstDefRe.exec( line ))) {
             if ( verbose === 3 ) {
-                logger.log( "Line " + lineNumber + ": Const " + res[1] + " = " + 
-                            res[2], scriptName );
+                logger.log( "Line " + lineNumber + ": Const " + res[1] + 
+                            " = " + res[2], scriptName );
             }
             // Send warning if constant is being redefined
             if ( constants[res[1]] && verbose > 1 ) {
@@ -227,7 +242,8 @@ function Parser () {
             }
             constants[res[1]] = res[2];
         // Implicit declaration
-        } else if ( !inAmelCode && !inExtern && ( res = implicitDeclarationRe.exec( line ))) {
+        } else if ( !inAmelCode && !inExtern && 
+                    ( res = implicitDeclarationRe.exec( line ))) {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + ": Implicit declaration: " + 
                             res[1], scriptName );
@@ -263,9 +279,11 @@ function Parser () {
                 while ( attributes = elementAttributesRe.exec( res[2])) {
                     if ( verbose === 3 ) {
                         logger.log( "Line " + lineNumber + ": Attribute: " + 
-                                    attributes[1] + " = " + attributes[2], scriptName );
+                                    attributes[1] + " = " + attributes[2],
+                                    scriptName );
                     }
-                    element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
+                    element += " " + attributes[1] + "=\"" + 
+                                     attributes[2] + "\"";
                     checkAttribute( attributes[1], "div" );
                 }
                 element += ">";
@@ -277,8 +295,8 @@ function Parser () {
         } else if ( !inExtern && ( res = elementDeclarationRe.exec( line ))) {
             if ( verbose === 3 ) {
                 logger.log( "Line " + lineNumber + ": Element: " + res[1] + 
-                            ", level index " + levelIndex + " at " + res[0].trim(), 
-                            scriptName );
+                            ", level index " + levelIndex + " at " +
+                            res[0].trim(), scriptName );
             }
             if ( inAmelCode ) {
                 levelIndex++;
@@ -290,28 +308,30 @@ function Parser () {
                 var deprecatedElement  = deprecatedTagRe.exec( res[1]);
                 var tag                = "";
                 if ( singletonElement && verbose > 0 ) {
-                    logger.log( "Line " + lineNumber + ": " + singletonElement[1] + 
+                    logger.log( "Line " + lineNumber + ": " +
+                                singletonElement[1] + 
                                 " is a singleton element", scriptName, "e" );
                 }
                 if ( !baseElement ) {
                     if ( nonStandardElement ) {
                         tag = nonStandardElement[1];
                         if ( verbose > 1 ) {
-                            logger.log( "Line " + lineNumber + 
-                                        ": This element may not be supported in all browsers", 
-                                        "w" );
+                            logger.log( 
+                                "Line " + lineNumber + 
+                                ": This element may not be supported in all browsers", "w" );
                         }
                     } else if ( deprecatedElement ) {
                          tag = deprecatedElement[1];
                          if ( verbose > 1 ) {
                              logger.log( "Line " + lineNumber + ": " + tag + 
-                                         " element is deprecated.", scriptName, "w" );
+                                         " element is deprecated.", scriptName,
+                                         "w" );
                         }
                     } else {
                         if ( verbose > 0 ) {
                             logger.log( "Line " + lineNumber + 
-                                        ": Invalid element at line: " + line, scriptName, 
-                                        "e" );
+                                        ": Invalid element at line: " + line,
+                                        scriptName, "e" );
                         }
                         return;
                     }
@@ -342,34 +362,41 @@ function Parser () {
                 while ( attributes = elementAttributesRe.exec( res[2])) {
                     if ( verbose === 3 ) {
                         logger.log( "Line " + lineNumber + ": Attribute: " + 
-                                    attributes[1] + " = " + attributes[2], scriptName );
+                                    attributes[1] + " = " + attributes[2],
+                                    scriptName );
                     }
-                    element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
+                    element += " " + attributes[1] + "=\"" + 
+                               attributes[2] + "\"";
                     checkAttribute( attributes[1], tag );
                 }
                 // Search for constant use in attributes
                 while ( attributes = attributesConstRe.exec( res[2])) {
                     if ( verbose === 3 ) {
-                        logger.log( "Line " + lineNumber + ": Const in attribute: " + 
-                                    attributes[1] + " = " + attributes[2], scriptName );
+                        logger.log( "Line " + lineNumber + 
+                                    ": Const in attribute: " + attributes[1] + 
+                                    " = " + attributes[2], scriptName );
                     }
                     if ( constants[attributes[2]]) {
                         if ( verbose === 3 ) {
-                            logger.log( "Line " + lineNumber + ": Replacing @" + 
-                                        attributes[2] + " by " + constants[attributes[2]], 
+                            logger.log( "Line " + lineNumber + 
+                                        ": Replacing @" + attributes[2] + 
+                                        " by " + constants[attributes[2]], 
                                         scriptName );
                         }
                         attributes[2] = attributes[2].replace( attributes[2], 
-                                                               constants[attributes[2]]);
+                                                     constants[attributes[2]]);
                     } else {
                         if ( verbose > 0 ) {
                             logger.log( "Line " + lineNumber + ": Constant " + 
-                                        attributes[2] + " undefined", scriptName, "e" );
+                                        attributes[2] + " undefined",
+                                        scriptName, "e" );
                         }
-                        attributes[2] = attributes[2].replace( attributes[2], 
-                                                               "?" + attributes[2] );
+                        attributes[2] = 
+                            attributes[2].replace( attributes[2], "?" +
+                                                   attributes[2]);
                     }
-                    element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
+                    element += " " + attributes[1] + "=\"" + 
+                               attributes[2] + "\"";
                 }
                 element += ">";
                 output += element + "\n";
@@ -377,7 +404,8 @@ function Parser () {
                 levels.push( tag );
                 if ( tag === "style" ) {
                     if ( verbose === 3 ) {
-                        logger.log( "Line " + lineNumber + ": Skipping inside style markup", 
+                        logger.log( "Line " + lineNumber + 
+                                    ": Skipping inside style markup", 
                                     scriptName );
                     }
                     inStyleMarkup = 1;
@@ -386,7 +414,8 @@ function Parser () {
         // Singleton element declaration
         } else if ( res = elementDeclaration2Re.exec( line )) {
             if ( verbose === 3 ) {
-                logger.log( "Line " + lineNumber + ": Singleton tag", scriptName );
+                logger.log( "Line " + lineNumber + ": Singleton tag",
+                             scriptName );
             }
             if ( inAmelCode ) {
                 levelIndex++;
@@ -406,8 +435,8 @@ function Parser () {
             
                 if ( verbose === 3 ) {
                     logger.log( "Line " + lineNumber + ": Element: " + res[1] + 
-                                ", level index " + levelIndex + " at " + res[0].trim(), 
-                                scriptName );
+                                ", level index " + levelIndex + " at " +
+                                res[0].trim(), scriptName );
                 }
                 var element = indentation() + "<" + tag;
                 // Find classes
@@ -433,26 +462,32 @@ function Parser () {
                 // Find attributes
                 while ( attributes = elementAttributesRe.exec( res[2])) {
                     if ( verbose === 3 ) {
-                        logger.log( "Line " + lineNumber + ": Attribute: " + attributes[1] + 
-                                    " = " + attributes[2], scriptName );
+                        logger.log( "Line " + lineNumber + ": Attribute: " +
+                                    attributes[1] + " = " + 
+                                    attributes[2], scriptName );
                     }
-                    element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
+                    element += " " + attributes[1] + "=\"" + 
+                               attributes[2] + "\"";
                     checkAttribute( attributes[1], tag );
                 }
                 // Check for constant use in attributes
                 while ( attributes = attributesConstRe.exec( res[2])) {
                     if ( verbose === 3 ) {
-                        logger.log( "Line " + lineNumber + ": Const in attribute: " + 
-                                    attributes[1] + " = " + attributes[2], scriptName );
+                        logger.log( "Line " + lineNumber + 
+                                    ": Const in attribute: " + 
+                                    attributes[1] + " = " + attributes[2],
+                                    scriptName );
                     }
                     if ( constants[attributes[2]]) {
                         if ( verbose === 3 ) {
-                            logger.log( "Line " + lineNumber + ": Replacing @" + 
-                                        attributes[2] + " by " + constants[attributes[2]], 
+                            logger.log( "Line " + lineNumber + 
+                                        ": Replacing @" + attributes[2] + 
+                                        " by " + constants[attributes[2]], 
                                         scriptName );
                         }
-                        attributes[2] = attributes[2].replace( attributes[2], 
-                                                               constants[attributes[2]]);
+                        attributes[2] = 
+                            attributes[2].replace( attributes[2],
+                                                   constants[attributes[2]]);
                     } else {
                         if ( verbose > 0 ) {
                             logger.log( "Line " + lineNumber + ": Constant " + 
@@ -543,14 +578,16 @@ function Parser () {
                             } else if ( deprecatedElement ) {
                                  tag = deprecatedElement[1];
                                  if ( verbose > 1 ) {
-                                     logger.log( "Line " + lineNumber + ": " + tag + 
-                                                 " element is deprecated.", scriptName, "w" );
+                                     logger.log( "Line " + lineNumber + ": " +
+                                                  tag + 
+                                                 " element is deprecated.",
+                                                 scriptName, "w" );
                                 }
                             } else {
                                 if ( verbose > 0 ) {
                                     logger.log( "Line " + lineNumber + 
-                                                ": Invalid element at line: " + line, scriptName, 
-                                                "e" );
+                                                ": Invalid element at line: " +
+                                                line, scriptName, "e" );
                                 }
                                 return;
                             }
@@ -560,7 +597,8 @@ function Parser () {
                         if ( line.match( elementClassRe )) {
                             var classAmount = 0;
                             element += " class=\"";
-                            while ( classes = elementClassRe.exec( elements[1])) {
+                            while ( classes = 
+                                        elementClassRe.exec( elements[1])) {
                                 if ( classAmount === 0 ) {
                                     element += classes[1];
                                 } else {
@@ -577,12 +615,15 @@ function Parser () {
                             }
                         }
                         // Find attributes
-                        while ( attributes = elementAttributesRe.exec( elements[2])) {
+                        while ( attributes = 
+                                    elementAttributesRe.exec( elements[2])) {
                             if ( verbose === 3 ) {
-                                logger.log( "Line " + lineNumber + ": Attribute: " + 
-                                            attributes[1] + " = " + attributes[2], scriptName );
+                                logger.log( "Line " + lineNumber + 
+                                            ": Attribute: " +  attributes[1] +
+                                            " = " + attributes[2], scriptName );
                             }
-                            element += " " + attributes[1] + "=\"" + attributes[2] + "\"";
+                            element += " " + attributes[1] + "=\"" +
+                                       attributes[2] + "\"";
                             checkAttribute( attributes[1], tag );
                         }
                         element += ">" + elements[3] + "</" + tag + ">";
@@ -633,8 +674,8 @@ function Parser () {
             // Should we measure time spent to parse?
             if ( profiling ) {
                 var timeParseEnd = Date.now();
-                logger.log( "Parsing took " + ( timeParseEnd - timeParseStart ) + 
-                            " ms", scriptName );
+                logger.log( "Parsing took " + ( timeParseEnd - timeParseStart )
+                            + " ms", scriptName );
             }
             // Write generated output to file
             if ( writeToFile ) {
@@ -643,7 +684,8 @@ function Parser () {
                 if ( profiling ) {
                     var timeWroteOutput = Date.now();
                     logger.log( "Writing output took " + 
-                                ( timeWroteOutput - timeParseEnd ) + " ms", scriptName );
+                                ( timeWroteOutput - timeParseEnd ) + " ms",
+                                scriptName );
                 }
             }            
             callback( file );
@@ -738,7 +780,8 @@ function Parser () {
                     }
                 }
                 if ( foundTag && verbose > 1 ) {
-                    logger.log( "Attribute " + attribute + " is deprecated for tag " + 
+                    logger.log( "Attribute " + attribute + 
+                                " is deprecated for tag " + 
                                 tag, scriptName, "w" );
                 }
             }

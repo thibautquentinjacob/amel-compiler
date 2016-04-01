@@ -81,13 +81,15 @@ function Logger() {
             if ( this.useFile ) {
                 message = "[" + dispatcher + "] " + message;
             } else {
-                message = "[" + colors.green + dispatcher + colors.reset + "] " + message;
+                message = "[" + colors.green + dispatcher + colors.reset + 
+                          "] " + message;
             }
         }
         if ( this.useTimestamp ) {
             var date = new Date();
             if ( !this.useFile ) {
-                message = colors.yellow + date.getDate() + "-" + date.getMonth() + "-" + 
+                message = colors.yellow + date.getDate() + 
+                          "-" + date.getMonth() + "-" + 
                           date.getFullYear() + " " + date.getHours() + ":" + 
                           date.getMinutes() + ":" + date.getSeconds() + 
                           colors.red + " > " + colors.reset + message;
