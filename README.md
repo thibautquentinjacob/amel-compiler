@@ -31,6 +31,12 @@ var amel = new Compiler.Amel();
 app.get("/about", function(req, res){
 	res.send(amel.parse("__dirname/path/to/file.amel"));
 });
+//Or using an optionnal callback
+app.get("/about", function(req, res){
+	amel.parse("__dirname/path/to/file.amel", function(compiled){
+		res.send(compiled);
+	});
+});
 ```
 
 TODO: Runtime client parsing
