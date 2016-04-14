@@ -6,36 +6,50 @@ var Path = require("path");
 var Crypto = require("crypto");
 var Parser = require("./modules/parser.js");
 var Logger = require("./modules/logger.js");
+var Keywords = require("./modules/keywords.js");
+var keywords = new Keywords();
 var testTotal = 0;
 var testPassed = 0;
+var parser = {};
 var logger = new Logger();
 var scriptName = __filename;
 scriptName = scriptName.replace(__dirname + "/", "");
-
+var testMax = 0;
 // For each files in the test folder, parse it and run compare callback on EOF.
 Fs.readdir("tests", function (err, items) {
     if (err) {
         throw err
     }
+    testMax = getTestNumber(items);
     for (var i = 0; i < items.length; i++) {
         // Only parse .amel files
         if (Path.extname(items[i]) === ".amel") {
             parser = new Parser(true);
             parser.parse("./tests/" + items[i], compare);
         }
+
     }
     //     logger.log( "--------------------\n" + testPassed + " / " + testTotal + " tests passed" );
 });
 
-/**
- * Checks if the produce of the amel file compilation gave the expected output.
- * 
- * Provided an input amel file, check if a res and an html file with the same
- * root name exist. Print an error if not. If both exist, compare the MD5 sum of
- * the res (expected) file to the HTML (output) file. Print the result.
- * @param Input file
- * @return None
- */
+var getTestNumber = function (items) {
+        var num = 0;
+        for (var i = 0; i < items.length; i++) {
+            if (Path.extname(items[i]) === ".amel") {
+                num++;
+            }
+        }
+        return num;
+    }
+    /**
+     * Checks if the produce of the amel file compilation gave the expected output.
+     * 
+     * Provided an input amel file, check if a res and an html file with the same
+     * root name exist. Print an error if not. If both exist, compare the MD5 sum of
+     * the res (expected) file to the HTML (output) file. Print the result.
+     * @param Input file
+     * @return None
+     */
 var compare = function (_item) {
     var item = _item.path;
     testTotal++;
@@ -75,5 +89,22 @@ var compare = function (_item) {
         testPassed++;
     } else {
         logger.log("- " + testName + " [\x1b[31mX\x1b[0m]", scriptName);
+    }
+    if (testPassed == testMax) {
+        console.log("Ok");
+        var clientScript = "var keywords = {};\n";
+        clientScript += "keywords.singletonTags = [ " + keywords.singletonTags + '];\n';
+        clientScript += "keywords.tags = [" + keywords.tags + '];\n';
+        clientScript += "keywords.nonStandardTags = [" + keywords.nonStandardTags + "];\n";
+        clientScript += "keywords.deprecatedTags = " + JSON.stringify(keywords.deprecatedTags) + ";\n";
+        clientScript += "keywords.attributes = " + JSON.stringify(keywords.attributes) + ";\n";
+        clientScript += "keywords.deprecatedAttributes = " + JSON.stringify(keywords.deprecatedAttributes) + ";\n";
+        clientScript += "\n";
+        clientScript += "";
+        var p = new Parser();
+        delete p.parse;
+        delete p.lineReader;
+        delete p.logToScreen;
+        
     }
 }

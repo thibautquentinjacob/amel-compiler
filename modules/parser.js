@@ -682,7 +682,7 @@ function Parser(writeFile) {
             this.lineReader = require('readline').createInterface({
                 input: require('fs').createReadStream(file)
             });
-        } else if(!writeToFile) {
+        } else if (!writeToFile) {
             var timeParseStart = Date.now();
             var stream = require('stream');
             var s = new stream.Readable();
@@ -722,6 +722,20 @@ function Parser(writeFile) {
             });
             return output;
         });
+    };
+
+    Parser.prototype.clientSideParse = function (input, callback) {
+        var self = this;
+        var output = "";
+        var lineArray = input.split("\n");
+        var timeParseStart = Date.now();
+
+        lineArray.forEach(function (line) {
+            output+=self.parseLine(line);
+        });
+        var timeParseStop = Date.now();
+        callback(output);
+        return output;
     };
 
     /**
