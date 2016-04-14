@@ -70,7 +70,7 @@ function Parser () {
      * @param Line to parse
      * @return String output
      */
-    var parseLine = function( line ) {
+    Parser.prototype.parseLine = function( line ) {
         lineNumber++;
         var output = "";
         // One line multiline comment. Why, but why?

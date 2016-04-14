@@ -1,0 +1,28 @@
+{
+  "name": "amel-compiler",
+  "version": "0.1.0",
+  "description": "A markup extented language compiler for Amel language.",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thibautquentinjacob/amel-compiler.git"
+  },
+  "keywords": [
+    "Compiler",
+    "Runtime",
+    "Template"
+  ],
+  "author": "Thibaut Jacob, Marc-Emmanuel Perrin",
+  "license": "Apache 2",
+  "bugs": {
+    "url": "https://github.com/thibautquentinjacob/amel-compiler/issues"
+  },
+  "homepage": "https://github.com/thibautquentinjacob/amel-compiler#readme"
+}
