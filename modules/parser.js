@@ -14,11 +14,11 @@ var scriptName = __filename;
 scriptName = scriptName.replace(__dirname + "/", "");
 
 /**
-* Parser Constructor
-* Init
-* @param boolean writeFile to specify wether or not the output should be writen or just returned
-* @return nothing
-*/
+ * Parser Constructor
+ * Init
+ * @param boolean writeFile to specify wether or not the output should be writen or just returned
+ * @return nothing
+ */
 function Parser(writeFile) {
     // Attributes
     var constants = {};
@@ -34,7 +34,7 @@ function Parser(writeFile) {
     var lineNumber = 0;
     verbose = 3;
     profiling = true;
-    writeToFile = false || writeFile ;
+    writeToFile = false || writeFile;
     logger.setUseFile(true);
     logger.setFilePath("./log.txt");
 
@@ -658,26 +658,43 @@ function Parser(writeFile) {
      * @return Nothing
      */
     Parser.prototype.parse = function (file, callback) {
-        try {
-            Fs.accessSync(file, Fs.F_OK);
-        } catch (e) {
-            if (verbose > 0) {
-                logger.log(e, scriptName, "e");
+        var self = this;
+        if (file.indexOf('.amel') > 0) {
+            try {
+                Fs.accessSync(file, Fs.F_OK);
+            } catch (e) {
+                if (verbose > 0) {
+                    logger.log(e, scriptName, "e");
+                }
+                process.exit(1);
             }
-            process.exit(1);
         }
-        var outputFile = file.replace(".amel", ".html");
+
         var output = "";
         if (verbose === 3) {
             logger.log("Parsing file: " + file, scriptName);
         }
-        // Read file line by line
-        var timeParseStart = Date.now();
-        this.lineReader = require('readline').createInterface({
-            input: require('fs').createReadStream(file)
-        });
+        if (writeToFile) {
+            // Read file line by line
+            var outputFile = file.replace(".amel", ".html");
+            var timeParseStart = Date.now();
+            this.lineReader = require('readline').createInterface({
+                input: require('fs').createReadStream(file)
+            });
+        } else {
+            var timeParseStart = Date.now();
+            var stream = require('stream');
+            var s = new stream.Readable();
+            s._read = function noop() {}; // redundant? see update below
+            s.push(file);
+            s.push(null);
+            this.lineReader = require("readline").createInterface({
+                input: s
+            });
+
+        }
         this.lineReader.on('line', function (line) {
-            output += parseLine(line);
+            output += self.parseLine(line);
         });
 
         this.lineReader.on('close', function () {
@@ -697,9 +714,11 @@ function Parser(writeFile) {
                         scriptName);
                 }
             }
-            if (callback) {
-                callback({output: output, path: file});
-            }
+            //Mandatory callback
+            callback({
+                output: output,
+                path: file
+            });
             return output;
         });
     };
