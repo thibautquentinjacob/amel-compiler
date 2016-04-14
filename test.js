@@ -20,7 +20,7 @@ Fs.readdir("tests", function (err, items) {
     for (var i = 0; i < items.length; i++) {
         // Only parse .amel files
         if (Path.extname(items[i]) === ".amel") {
-            parser = new Parser();
+            parser = new Parser(true);
             parser.parse("./tests/" + items[i], compare);
         }
     }
