@@ -36,7 +36,8 @@ Fs.readdir( "tests", function( err, items ) {
  * @param Input file
  * @return None
  */
-var compare = function( item ) {
+var compare = function( _item ) {
+    var item = _item.path;
     testTotal++;
     var testName    = item.replace( ".amel", "" );
     testName        = item.replace( "./tests/", "" );

@@ -654,7 +654,7 @@ function Parser(writeFile) {
      * Check that input file is accessible. If it is, read it line by line,
      * calling parseLine function on them. Calls callback on EOF.
      * @param Input file path to amel file
-     * @param callback to run on EOF
+     * @param callback to run on EOF -> Callback parameter is an object, with two attrs: output: String and path: file
      * @return Nothing
      */
     Parser.prototype.parse = function (file, callback) {
@@ -698,7 +698,7 @@ function Parser(writeFile) {
                 }
             }
             if (callback) {
-                callback(file);
+                callback({output: output, path: file});
             }
             return output;
         });
