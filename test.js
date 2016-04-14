@@ -56,7 +56,7 @@ var compare = function (_item) {
     // If html file was not generated
     try {
         Fs.accessSync(htmlFile, Fs.F_OK);
-        htmlContent = Fs.readFileSync(htmlFile);
+        htmlContent = Fs.readFileSync(htmlFile, "utf-8");
     } catch (e) {
         logger.log(testName + ": HTML file (" + htmlFile +
             ") not accessible", scriptName, "e");

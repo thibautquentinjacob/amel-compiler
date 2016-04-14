@@ -34,7 +34,7 @@ function Parser(writeFile) {
     var lineNumber = 0;
     verbose = 3;
     profiling = true;
-    writeToFile = false || writeFile;
+    var writeToFile = false || writeFile;
     logger.setUseFile(true);
     logger.setFilePath("./log.txt");
 
@@ -76,7 +76,7 @@ function Parser(writeFile) {
      * @param Line to parse
      * @return String output
      */
-    Parser.prototype.parseLine = function (line) {
+    this.parseLine = function (line) {
         lineNumber++;
         var output = "";
         // One line multiline comment. Why, but why?
@@ -662,6 +662,7 @@ function Parser(writeFile) {
         if (file.indexOf('.amel') > 0) {
             try {
                 Fs.accessSync(file, Fs.F_OK);
+                console.log("Accessing " + file);
             } catch (e) {
                 if (verbose > 0) {
                     logger.log(e, scriptName, "e");
@@ -681,7 +682,7 @@ function Parser(writeFile) {
             this.lineReader = require('readline').createInterface({
                 input: require('fs').createReadStream(file)
             });
-        } else {
+        } else if(!writeToFile) {
             var timeParseStart = Date.now();
             var stream = require('stream');
             var s = new stream.Readable();
