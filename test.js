@@ -122,7 +122,7 @@ var compare = function (_item) {
     var externCodeBuffer = "";\n\
     var lineNumber = 0;\n\
     verbose = 0;\n\
-    profiling = flase;\n\
+    profiling = false;\n\
     var writeToFile = false || writeFile;\n\/\/COPY RegExp Here\n';
         
         clientScript += "\n";

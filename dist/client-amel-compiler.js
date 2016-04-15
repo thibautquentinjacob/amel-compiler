@@ -17,7 +17,7 @@ function Parser(){
     var externCodeBuffer = "";
     var lineNumber = 0;
     verbose = 0;
-    profiling = flase;
+    profiling = false;
     var writeToFile = false || writeFile;
 //COPY RegExp Here
 // Regular expressions
