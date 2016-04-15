@@ -129,7 +129,7 @@ var compare = function (_item) {
         clientScript += "    this.parseLine = " + p.parseLine.toString() + "\n";
         clientScript += "    Parser.prototype.clientSideParse = " + p.clientSideParse.toString() + '\n';
         clientScript += "    this.checkAttribute = " + p.checkAttribute.toString() + "\n";
-        clientScript += "    this.indetation = " + p.indentation.toString() + "\n";
+        clientScript += "    this.indentation = " + p.indentation.toString() + "\n";
         clientScript += "}";
 
         Fs.writeFileSync('./dist/client-amel-compiler.js', clientScript, "utf-8");

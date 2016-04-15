@@ -679,7 +679,7 @@ function Parser(){
                 scriptName, "w");
         }
     }
-    this.indetation = function () {
+    this.indentation = function () {
         var indentation = "";
         for (var i = 0; i < levelIndex; i++) {
             indentation += "    ";
