@@ -140,8 +140,10 @@ function Parser(writeFile) {
                         "}; fun()");
                     // export returned vars to environment
                     for (var key in out) {
-                        logger.log("Exporting constant " + key +
-                            " = " + out[key], scriptName);
+                        if (verbose > 0) {
+                            logger.log("Exporting constant " + key +
+                                " = " + out[key], scriptName);
+                        }
                         constants[key] = out[key];
                     }
                     inExtern = 0;
@@ -731,7 +733,7 @@ function Parser(writeFile) {
         var timeParseStart = Date.now();
 
         lineArray.forEach(function (line) {
-            output+=self.parseLine(line);
+            output += self.parseLine(line);
         });
         var timeParseStop = Date.now();
         callback(output);

@@ -1,12 +1,166 @@
 var keywords = {};
-keywords.singletonTags = [ "area","base","br","col","command","embed","hr","img","input","link","meta","param","source","wbr","track"];
-keywords.tags = ["abbr","html","header","head","title","body","style","nav","footer","main","aside","article","section","h1","h2","h3","h4","h5","h6","hgroup","div","pre","blockquote","ul","ol","li","dl","dt","dd","span","em","strong","mark","small","del","ins","sup","sub","dfn","code","var","samp","kdb","cite","ruby","rtc","rt","rp","bdo","bdi","table","caption","tr","td","thead","th","tfoot","tbody","colgroup","figure","figcaption","map","video","audio","script","noscript","object","iframe","canvas","address","meter","progress","time","form","button","textarea","select","option","optgroup","label","fieldset","legend","datalist","menuitem","menu","output","details","summary","data","content","element","shadow","template","keygen","dialog","a","b","i","u","s","q","p"];
+keywords.singletonTags = ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "link", "meta", "param", "source", "wbr", "track"];
+keywords.tags = ["abbr", "html", "header", "head", "title", "body", "style", "nav", "footer", "main", "aside", "article", "section", "h1", "h2", "h3", "h4", "h5", "h6", "hgroup", "div", "pre", "blockquote", "ul", "ol", "li", "dl", "dt", "dd", "span", "em", "strong", "mark", "small", "del", "ins", "sup", "sub", "dfn", "code", "var", "samp", "kdb", "cite", "ruby", "rtc", "rt", "rp", "bdo", "bdi", "table", "caption", "tr", "td", "thead", "th", "tfoot", "tbody", "colgroup", "figure", "figcaption", "map", "video", "audio", "script", "noscript", "object", "iframe", "canvas", "address", "meter", "progress", "time", "form", "button", "textarea", "select", "option", "optgroup", "label", "fieldset", "legend", "datalist", "menuitem", "menu", "output", "details", "summary", "data", "content", "element", "shadow", "template", "keygen", "dialog", "a", "b", "i", "u", "s", "q", "p"];
 keywords.nonStandardTags = ["bgsound"];
-keywords.deprecatedTags = {"acronym":"<abbr>","applet":"<object>","basefont":"CSS font-family","big":"CSS rules","blink":"CSS text-decoration: blink","center":"CSS text-align: center","dir":"<ul>","font":"CSS font","frame":"<iframe>","frameset":"<iframe>","isindex":"none","listing":"<pre>, <code> or div with CSS to set font-family to monospace","marquee":"CSS animations","noembed":"<object>","plaintext":"<pre>, <code> or div with CSS to set font-family to monospace","spacer":"CSS rules","strike":"CSS text-decoration: line-through","tt":"<code> or <span>","xmp":"<pre> or <code>"};
-keywords.attributes = {"accept":["form","input"],"accept-charset":["form"],"accesskey":["global"],"action":["form"],"align":["applet","caption","col","colgroup","hr","iframe","img","table","tbody","td","tfoot","th","thead","tr"],"alt":["applet","area","img","input"],"async":["script"],"autocomplete":["form","input"],"autofocus":["button","input","keygen","select","textarea"],"autoplay":["audio","video"],"autosave":["input"],"bgcolor":["body","col","colgroup","marquee","table","tbody","tfoot","td","th","tr"],"border":["img","object","table"],"buffered":["audio","video"],"challenge":["keygen"],"charset":["meta","script"],"checked":["command","input"],"cite":["blockquote","del","ins","q"],"class":["global"],"code":["applet"],"codebase":["applet"],"color":["basefont","font","hr"],"cols":["textarea"],"colspan":["td","th"],"content":["meta"],"contenteditable":["global"],"contextmenu":["global"],"controls":["audio","video"],"coords":["area"],"data":["object"],"data-*":["global"],"datetime":["del","ins","time"],"default":["track"],"defer":["script"],"dir":["global"],"dirname":["input","textarea"],"disabled":["button","command","fieldset","input","keygen","optgroup","option","select","textarea"],"download":["a","area"],"draggable":["global"],"dropzone":["global"],"enctype":["form"],"for":["label","output"],"form":["button","fieldset","input","keygen","label","meter","object","output","progress","select","textarea"],"formaction":["input","button"],"headers":["td","th"],"height":["canvas","embed","iframe","img","input","object","video"],"hidden":["global"],"high":["meter"],"href":["a","area","base","link"],"hreflang":["a","area","link"],"http-equiv":["meta"],"icon":["command"],"id":["global"],"ismap":["img"],"itemprop":["global"],"keytype":["keygen"],"kind":["track"],"label":["track"],"lang":["global"],"language":["script"],"list":["input"],"loop":["audio","bgsound","marquee","video"],"low":["meter"],"manifest":["html"],"max":["input","meter","progress"],"maxlength":["input","textarea"],"media":["a","area","link","source","style"],"method":["form"],"min":["input","meter"],"multiple":["input","select"],"name":["button","form","fieldset","iframe","input","keygen","object","output","select","textarea","map","meta","param"],"novalidate":["form"],"open":["details"],"optimum":["meter"],"pattern":["input"],"ping":["a","area"],"placeholder":["input","textarea"],"poster":["video"],"preload":["audio","video"],"radiogroup":["command"],"readonly":["input","textarea"],"rel":["a","area","link"],"required":["input","select","textarea"],"reversed":["ol"],"rows":["textarea"],"rowspan":["td","th"],"sandbox":["iframe"],"scope":["th"],"scoped":["style"],"seamless":["iframe"],"selected":["option"],"shape":["a","area"],"size":["input","select"],"sizes":["link","img","source"],"span":["col","colgroup"],"spellcheck":["global"],"src":["audio","embed","iframe","img","input","script","source","track","video"],"srcdoc":["iframe"],"srclang":["track"],"srcset":["img"],"start":["ol"],"step":["input"],"style":["global"],"summary":["table"],"tabIndex":["global"],"target":["a","area","base","form"],"title":["global"],"type":["button","input","command","embed","object","script","source","style","menu"],"usemap":["img","input","object"],"value":["button","option","input","li","meter","progress","param"],"width":["canvas","embed","iframe","img","input","object","video"],"wrap":["textarea"]};
-keywords.deprecatedAttributes = {"align":["caption","img","table","hr","div","h1","h2","h3","h4","h5","h6","p"],"alink":["body"],"background":["body"],"bgcolor":["body","table","tr","td","th"],"clear":["br"],"compact":["ol","ul"],"color":["basefont","font"],"border":["img","object"],"hspace":["img","object"],"link":["body"],"noshade":["hr"],"nowrap":["td","th"],"size":["basefont","font","hr"],"start":["ol"],"text":["body"],"type":["li"],"value":["li"],"vlink":["body"],"width":["hr","pre","td","th"],"vspace":["img","object"]};
+keywords.deprecatedTags = {
+    "acronym": "<abbr>",
+    "applet": "<object>",
+    "basefont": "CSS font-family",
+    "big": "CSS rules",
+    "blink": "CSS text-decoration: blink",
+    "center": "CSS text-align: center",
+    "dir": "<ul>",
+    "font": "CSS font",
+    "frame": "<iframe>",
+    "frameset": "<iframe>",
+    "isindex": "none",
+    "listing": "<pre>, <code> or div with CSS to set font-family to monospace",
+    "marquee": "CSS animations",
+    "noembed": "<object>",
+    "plaintext": "<pre>, <code> or div with CSS to set font-family to monospace",
+    "spacer": "CSS rules",
+    "strike": "CSS text-decoration: line-through",
+    "tt": "<code> or <span>",
+    "xmp": "<pre> or <code>"
+};
+keywords.attributes = {
+    "accept": ["form", "input"],
+    "accept-charset": ["form"],
+    "accesskey": ["global"],
+    "action": ["form"],
+    "align": ["applet", "caption", "col", "colgroup", "hr", "iframe", "img", "table", "tbody", "td", "tfoot", "th", "thead", "tr"],
+    "alt": ["applet", "area", "img", "input"],
+    "async": ["script"],
+    "autocomplete": ["form", "input"],
+    "autofocus": ["button", "input", "keygen", "select", "textarea"],
+    "autoplay": ["audio", "video"],
+    "autosave": ["input"],
+    "bgcolor": ["body", "col", "colgroup", "marquee", "table", "tbody", "tfoot", "td", "th", "tr"],
+    "border": ["img", "object", "table"],
+    "buffered": ["audio", "video"],
+    "challenge": ["keygen"],
+    "charset": ["meta", "script"],
+    "checked": ["command", "input"],
+    "cite": ["blockquote", "del", "ins", "q"],
+    "class": ["global"],
+    "code": ["applet"],
+    "codebase": ["applet"],
+    "color": ["basefont", "font", "hr"],
+    "cols": ["textarea"],
+    "colspan": ["td", "th"],
+    "content": ["meta"],
+    "contenteditable": ["global"],
+    "contextmenu": ["global"],
+    "controls": ["audio", "video"],
+    "coords": ["area"],
+    "data": ["object"],
+    "data-*": ["global"],
+    "datetime": ["del", "ins", "time"],
+    "default": ["track"],
+    "defer": ["script"],
+    "dir": ["global"],
+    "dirname": ["input", "textarea"],
+    "disabled": ["button", "command", "fieldset", "input", "keygen", "optgroup", "option", "select", "textarea"],
+    "download": ["a", "area"],
+    "draggable": ["global"],
+    "dropzone": ["global"],
+    "enctype": ["form"],
+    "for": ["label", "output"],
+    "form": ["button", "fieldset", "input", "keygen", "label", "meter", "object", "output", "progress", "select", "textarea"],
+    "formaction": ["input", "button"],
+    "headers": ["td", "th"],
+    "height": ["canvas", "embed", "iframe", "img", "input", "object", "video"],
+    "hidden": ["global"],
+    "high": ["meter"],
+    "href": ["a", "area", "base", "link"],
+    "hreflang": ["a", "area", "link"],
+    "http-equiv": ["meta"],
+    "icon": ["command"],
+    "id": ["global"],
+    "ismap": ["img"],
+    "itemprop": ["global"],
+    "keytype": ["keygen"],
+    "kind": ["track"],
+    "label": ["track"],
+    "lang": ["global"],
+    "language": ["script"],
+    "list": ["input"],
+    "loop": ["audio", "bgsound", "marquee", "video"],
+    "low": ["meter"],
+    "manifest": ["html"],
+    "max": ["input", "meter", "progress"],
+    "maxlength": ["input", "textarea"],
+    "media": ["a", "area", "link", "source", "style"],
+    "method": ["form"],
+    "min": ["input", "meter"],
+    "multiple": ["input", "select"],
+    "name": ["button", "form", "fieldset", "iframe", "input", "keygen", "object", "output", "select", "textarea", "map", "meta", "param"],
+    "novalidate": ["form"],
+    "open": ["details"],
+    "optimum": ["meter"],
+    "pattern": ["input"],
+    "ping": ["a", "area"],
+    "placeholder": ["input", "textarea"],
+    "poster": ["video"],
+    "preload": ["audio", "video"],
+    "radiogroup": ["command"],
+    "readonly": ["input", "textarea"],
+    "rel": ["a", "area", "link"],
+    "required": ["input", "select", "textarea"],
+    "reversed": ["ol"],
+    "rows": ["textarea"],
+    "rowspan": ["td", "th"],
+    "sandbox": ["iframe"],
+    "scope": ["th"],
+    "scoped": ["style"],
+    "seamless": ["iframe"],
+    "selected": ["option"],
+    "shape": ["a", "area"],
+    "size": ["input", "select"],
+    "sizes": ["link", "img", "source"],
+    "span": ["col", "colgroup"],
+    "spellcheck": ["global"],
+    "src": ["audio", "embed", "iframe", "img", "input", "script", "source", "track", "video"],
+    "srcdoc": ["iframe"],
+    "srclang": ["track"],
+    "srcset": ["img"],
+    "start": ["ol"],
+    "step": ["input"],
+    "style": ["global"],
+    "summary": ["table"],
+    "tabIndex": ["global"],
+    "target": ["a", "area", "base", "form"],
+    "title": ["global"],
+    "type": ["button", "input", "command", "embed", "object", "script", "source", "style", "menu"],
+    "usemap": ["img", "input", "object"],
+    "value": ["button", "option", "input", "li", "meter", "progress", "param"],
+    "width": ["canvas", "embed", "iframe", "img", "input", "object", "video"],
+    "wrap": ["textarea"]
+};
+keywords.deprecatedAttributes = {
+    "align": ["caption", "img", "table", "hr", "div", "h1", "h2", "h3", "h4", "h5", "h6", "p"],
+    "alink": ["body"],
+    "background": ["body"],
+    "bgcolor": ["body", "table", "tr", "td", "th"],
+    "clear": ["br"],
+    "compact": ["ol", "ul"],
+    "color": ["basefont", "font"],
+    "border": ["img", "object"],
+    "hspace": ["img", "object"],
+    "link": ["body"],
+    "noshade": ["hr"],
+    "nowrap": ["td", "th"],
+    "size": ["basefont", "font", "hr"],
+    "start": ["ol"],
+    "text": ["body"],
+    "type": ["li"],
+    "value": ["li"],
+    "vlink": ["body"],
+    "width": ["hr", "pre", "td", "th"],
+    "vspace": ["img", "object"]
+};
 
-function Parser(){
+function Parser() {
     var constants = {};
     var levels = [];
     var levelIndex = 0;
@@ -19,8 +173,8 @@ function Parser(){
     verbose = 0;
     profiling = false;
     var writeToFile = false || writeFile;
-//COPY RegExp Here
-// Regular expressions
+    //COPY RegExp Here
+    // Regular expressions
     var multilineComment = /\/\*(.*)\*\//;
     var multilineCommentSRe = /\/\*(.*)/;
     var multilineCommentERe = /(.*)\*\/\s*$/;
@@ -115,8 +269,10 @@ function Parser(){
                         "}; fun()");
                     // export returned vars to environment
                     for (var key in out) {
-                        logger.log("Exporting constant " + key +
-                            " = " + out[key], scriptName);
+                        if (verbose > 0) {
+                            logger.log("Exporting constant " + key +
+                                " = " + out[key], scriptName);
+                        }
                         constants[key] = out[key];
                     }
                     inExtern = 0;
@@ -631,7 +787,7 @@ function Parser(){
         var timeParseStart = Date.now();
 
         lineArray.forEach(function (line) {
-            output+=self.parseLine(line);
+            output += self.parseLine(line);
         });
         var timeParseStop = Date.now();
         callback(output);
