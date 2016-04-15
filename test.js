@@ -15,6 +15,7 @@ var logger = new Logger();
 var scriptName = __filename;
 scriptName = scriptName.replace(__dirname + "/", "");
 var testMax = 0;
+
 // For each files in the test folder, parse it and run compare callback on EOF.
 Fs.readdir("tests", function (err, items) {
     if (err) {
@@ -33,13 +34,22 @@ Fs.readdir("tests", function (err, items) {
 });
 
 var getTestNumber = function (items) {
-        var num = 0;
-        for (var i = 0; i < items.length; i++) {
-            if (Path.extname(items[i]) === ".amel") {
-                num++;
-            }
+    var num = 0;
+    for (var i = 0; i < items.length; i++) {
+        if (Path.extname(items[i]) === ".amel") {
+            num++;
         }
-        return num;
+    }
+    return num;
+}
+
+Array.stringify = function (arr) {
+        var res = "";
+        for (var i = 0; i < arr.length - 1; i++) {
+            res += '"' + arr[i] + '",';
+        }
+        res += '"' + arr[arr.length - 1] + '"';
+        return res;
     }
     /**
      * Checks if the produce of the amel file compilation gave the expected output.
@@ -91,20 +101,38 @@ var compare = function (_item) {
         logger.log("- " + testName + " [\x1b[31mX\x1b[0m]", scriptName);
     }
     if (testPassed == testMax) {
-        console.log("Ok");
         var clientScript = "var keywords = {};\n";
-        clientScript += "keywords.singletonTags = [ " + keywords.singletonTags + '];\n';
-        clientScript += "keywords.tags = [" + keywords.tags + '];\n';
-        clientScript += "keywords.nonStandardTags = [" + keywords.nonStandardTags + "];\n";
+        clientScript += "keywords.singletonTags = [ " + Array.stringify(keywords.singletonTags) + '];\n';
+        clientScript += "keywords.tags = [" + Array.stringify(keywords.tags) + '];\n';
+        clientScript += "keywords.nonStandardTags = [" + Array.stringify(keywords.nonStandardTags) + "];\n";
         clientScript += "keywords.deprecatedTags = " + JSON.stringify(keywords.deprecatedTags) + ";\n";
         clientScript += "keywords.attributes = " + JSON.stringify(keywords.attributes) + ";\n";
         clientScript += "keywords.deprecatedAttributes = " + JSON.stringify(keywords.deprecatedAttributes) + ";\n";
         clientScript += "\n";
         clientScript += "";
         var p = new Parser();
-        delete p.parse;
-        delete p.lineReader;
-        delete p.logToScreen;
+        clientScript += "function Parser(){\n";
+        clientScript += '    var constants = {};\n\
+    var levels = [];\n\
+    var levelIndex = 0;\n\
+    var inMultilineComment = 0;\n\
+    var inStyleMarkup = 0;\n\
+    var inAmelCode = 0;\n\
+    var inExtern = 0;\n\
+    var externCodeBuffer = "";\n\
+    var lineNumber = 0;\n\
+    verbose = 0;\n\
+    profiling = flase;\n\
+    var writeToFile = false || writeFile;\n\/\/COPY RegExp Here\n';
         
+        clientScript += "\n";
+        clientScript += "    this.parseLine = " + p.parseLine.toString() + "\n";
+        clientScript += "    Parser.prototype.clientSideParse = " + p.clientSideParse.toString() + '\n';
+        clientScript += "    this.checkAttribute = " + p.checkAttribute.toString() + "\n";
+        clientScript += "    this.indetation = " + p.indentation.toString() + "\n";
+        clientScript += "}";
+
+        Fs.writeFileSync('./dist/client-amel-compiler.js', clientScript, "utf-8");
+        console.log("client amel-compiler written - don't forget to copy paste RegExp vars to the client script!");
     }
 }
