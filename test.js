@@ -110,6 +110,9 @@ var compare = function (_item) {
         clientScript += "keywords.deprecatedAttributes = " + JSON.stringify(keywords.deprecatedAttributes) + ";\n";
         clientScript += "\n";
         clientScript += "";
+        var re = Fs.readFileSync('./modules/regexp.js','utf-8');
+        
+        clientScript += re.replace("module.exports = AmelRe;","") + '\n';
         var p = new Parser();
         clientScript += "function Parser(){\n";
         clientScript += '    var constants = {};\n\
@@ -123,7 +126,9 @@ var compare = function (_item) {
     var lineNumber = 0;\n\
     verbose = 0;\n\
     profiling = false;\n\
-    var writeToFile = false || writeFile;\n\/\/COPY RegExp Here\n';
+    var writeToFile = false || writeFile;\n\
+    var amelRe = new AmelRe(keywords);\n';
+    
         
         clientScript += "\n";
         clientScript += "    this.parseLine = " + p.parseLine.toString() + "\n";
@@ -133,6 +138,6 @@ var compare = function (_item) {
         clientScript += "}";
 
         Fs.writeFileSync('./dist/client-amel-compiler.js', clientScript, "utf-8");
-        console.log("client amel-compiler written - don't forget to copy paste RegExp vars to the client script!");
+        console.log("client amel-compiler written");
     }
 }

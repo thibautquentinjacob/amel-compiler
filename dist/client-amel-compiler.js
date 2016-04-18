@@ -6,6 +6,41 @@ keywords.deprecatedTags = {"acronym":"<abbr>","applet":"<object>","basefont":"CS
 keywords.attributes = {"accept":["form","input"],"accept-charset":["form"],"accesskey":["global"],"action":["form"],"align":["applet","caption","col","colgroup","hr","iframe","img","table","tbody","td","tfoot","th","thead","tr"],"alt":["applet","area","img","input"],"async":["script"],"autocomplete":["form","input"],"autofocus":["button","input","keygen","select","textarea"],"autoplay":["audio","video"],"autosave":["input"],"bgcolor":["body","col","colgroup","marquee","table","tbody","tfoot","td","th","tr"],"border":["img","object","table"],"buffered":["audio","video"],"challenge":["keygen"],"charset":["meta","script"],"checked":["command","input"],"cite":["blockquote","del","ins","q"],"class":["global"],"code":["applet"],"codebase":["applet"],"color":["basefont","font","hr"],"cols":["textarea"],"colspan":["td","th"],"content":["meta"],"contenteditable":["global"],"contextmenu":["global"],"controls":["audio","video"],"coords":["area"],"data":["object"],"data-*":["global"],"datetime":["del","ins","time"],"default":["track"],"defer":["script"],"dir":["global"],"dirname":["input","textarea"],"disabled":["button","command","fieldset","input","keygen","optgroup","option","select","textarea"],"download":["a","area"],"draggable":["global"],"dropzone":["global"],"enctype":["form"],"for":["label","output"],"form":["button","fieldset","input","keygen","label","meter","object","output","progress","select","textarea"],"formaction":["input","button"],"headers":["td","th"],"height":["canvas","embed","iframe","img","input","object","video"],"hidden":["global"],"high":["meter"],"href":["a","area","base","link"],"hreflang":["a","area","link"],"http-equiv":["meta"],"icon":["command"],"id":["global"],"ismap":["img"],"itemprop":["global"],"keytype":["keygen"],"kind":["track"],"label":["track"],"lang":["global"],"language":["script"],"list":["input"],"loop":["audio","bgsound","marquee","video"],"low":["meter"],"manifest":["html"],"max":["input","meter","progress"],"maxlength":["input","textarea"],"media":["a","area","link","source","style"],"method":["form"],"min":["input","meter"],"multiple":["input","select"],"name":["button","form","fieldset","iframe","input","keygen","object","output","select","textarea","map","meta","param"],"novalidate":["form"],"open":["details"],"optimum":["meter"],"pattern":["input"],"ping":["a","area"],"placeholder":["input","textarea"],"poster":["video"],"preload":["audio","video"],"radiogroup":["command"],"readonly":["input","textarea"],"rel":["a","area","link"],"required":["input","select","textarea"],"reversed":["ol"],"rows":["textarea"],"rowspan":["td","th"],"sandbox":["iframe"],"scope":["th"],"scoped":["style"],"seamless":["iframe"],"selected":["option"],"shape":["a","area"],"size":["input","select"],"sizes":["link","img","source"],"span":["col","colgroup"],"spellcheck":["global"],"src":["audio","embed","iframe","img","input","script","source","track","video"],"srcdoc":["iframe"],"srclang":["track"],"srcset":["img"],"start":["ol"],"step":["input"],"style":["global"],"summary":["table"],"tabIndex":["global"],"target":["a","area","base","form"],"title":["global"],"type":["button","input","command","embed","object","script","source","style","menu"],"usemap":["img","input","object"],"value":["button","option","input","li","meter","progress","param"],"width":["canvas","embed","iframe","img","input","object","video"],"wrap":["textarea"]};
 keywords.deprecatedAttributes = {"align":["caption","img","table","hr","div","h1","h2","h3","h4","h5","h6","p"],"alink":["body"],"background":["body"],"bgcolor":["body","table","tr","td","th"],"clear":["br"],"compact":["ol","ul"],"color":["basefont","font"],"border":["img","object"],"hspace":["img","object"],"link":["body"],"noshade":["hr"],"nowrap":["td","th"],"size":["basefont","font","hr"],"start":["ol"],"text":["body"],"type":["li"],"value":["li"],"vlink":["body"],"width":["hr","pre","td","th"],"vspace":["img","object"]};
 
+//IMPORTANT: Init with amel keywords (to avoid cross ref)
+function AmelRe(keywords) {
+    this.multilineComment = /\/\*(.*)\*\//;
+    this.multilineCommentSRe = /\/\*(.*)/;
+    this.multilineCommentERe = /(.*)\*\/\s*$/;
+    this.commentRe = /^\s*\/\//;
+    this.ConstDefRe = /@([a-zA-Z0-9_]+)\s*=\s*"(.*)"/;
+    this.constUseRe = /@([a-zA-Z0-9_]+)/;
+    this.elementDeclarationRe = /^\s*([^\.#][^ @\(\)\[\]]*)\s*(\[.*\])?\s*\(/;
+    this.elementDeclaration2Re = /^\s*([^\.#][^ @\)\[\]]*)(\[.*\])/;
+    this.implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
+    this.oneLineDeclarationRe = /([^\.#> ][^ @\(\)\[\]>]*)\s*(\[[^\(\)>]*\])?\s*\(([^\)]+)\)/g;
+    this.elementClassRe = /\.([a-zA-Z0-9_\-]+)/g;
+    this.elementIdRe = /#([a-zA-Z0-9_\-]+)/;
+    this.elementAttributesRe = /([a-zA-Z_\-]+)\s*=\s*"([^,"]*)"/g;
+    this.attributesConstRe = /([a-z]+)\s*=\s*@([a-zA-Z0-9_]+)/g;
+    this.newLineRe = /\\\\/g;
+    this.boldRe = /__([^_]*)__/g;
+    this.italicRe = /_([^_]*)_/g;
+    this.strokeRe = /\-\-(.*)\-\-/g;
+    this.supRe = /\^\(\)/; // not used
+    this.blockEndRe = /\)\s*$/;
+    this.tagRe = new RegExp("(" + keywords.tags.join("|") +
+        ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
+    this.singletonTagRe = new RegExp("^[ \t]*(" + keywords.singletonTags.join("|") +
+        ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
+    this.nonStandardTagRe = new RegExp("(" + keywords.nonStandardTags.join("|") +
+        ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
+    this.deprecatedTagRe = new RegExp("(" + Object.keys(keywords.deprecatedTags).join("|") +
+        ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
+    this.amelCodeRe = /@amel\s*:\s*\(/;
+    this.externRe = /@extern\s*:\s*\(/;  
+}
+
+
 function Parser(){
     var constants = {};
     var levels = [];
@@ -19,7 +54,7 @@ function Parser(){
     verbose = 0;
     profiling = false;
     var writeToFile = false || writeFile;
-//COPY RegExp Here
+    var amelRe = new AmelRe(keywords);
 
     this.parseLine = function (line) {
         lineNumber++;
