@@ -7,7 +7,8 @@
  */
 
 // Requirements
-var Keywords = require("./keywords.js");
+var Keywords = require('./keywords.js');
+var amelRegExp = require('./regexp.js');
 var Logger = require("./logger.js");
 var Fs = require("fs");
 var scriptName = __filename;
@@ -32,43 +33,12 @@ function Parser(writeFile) {
     var logger = new Logger();
     var lineNumber = 0;
     var keywords = new Keywords();
+    var amelRe = new amelRegExp(keywords);
     verbose = 0;
     profiling = true;
     var writeToFile = false || writeFile;
     logger.setUseFile(true);
     logger.setFilePath("./log.txt");
-
-    // Regular expressions
-    var multilineComment = /\/\*(.*)\*\//;
-    var multilineCommentSRe = /\/\*(.*)/;
-    var multilineCommentERe = /(.*)\*\/\s*$/;
-    var commentRe = /^\s*\/\//;
-    var ConstDefRe = /@([a-zA-Z0-9_]+)\s*=\s*"(.*)"/;
-    var constUseRe = /@([a-zA-Z0-9_]+)/;
-    var elementDeclarationRe = /^\s*([^\.#][^ @\(\)\[\]]*)\s*(\[.*\])?\s*\(/;
-    var elementDeclaration2Re = /^\s*([^\.#][^ @\)\[\]]*)(\[.*\])/; // elements without values
-    var implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
-    var oneLineDeclarationRe = /([^\.#> ][^ @\(\)\[\]>]*)\s*(\[[^\(\)>]*\])?\s*\(([^\)]+)\)/g;
-    var elementClassRe = /\.([a-zA-Z0-9_\-]+)/g;
-    var elementIdRe = /#([a-zA-Z0-9_\-]+)/;
-    var elementAttributesRe = /([a-zA-Z_\-]+)\s*=\s*"([^,"]*)"/g;
-    var attributesConstRe = /([a-z]+)\s*=\s*@([a-zA-Z0-9_]+)/g;
-    var newLineRe = /\\\\/g;
-    var boldRe = /__([^_]*)__/g;
-    var italicRe = /_([^_]*)_/g;
-    var strokeRe = /\-\-(.*)\-\-/g;
-    var supRe = /\^\(\)/; // not used
-    var blockEndRe = /\)\s*$/;
-    var tagRe = new RegExp("(" + keywords.tags.join("|") +
-        ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
-    var singletonTagRe = new RegExp("^[ \t]*(" + keywords.singletonTags.join("|") +
-        ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
-    var nonStandardTagRe = new RegExp("(" + keywords.nonStandardTags.join("|") +
-        ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
-    var deprecatedTagRe = new RegExp("(" + Object.keys(keywords.deprecatedTags).join("|") +
-        ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
-    var amelCodeRe = /@amel\s*:\s*\(/;
-    var externRe = /@extern\s*:\s*\(/;
 
     /**
      * Parses input line by trying to match regular expressions. Depending on
@@ -80,7 +50,7 @@ function Parser(writeFile) {
         lineNumber++;
         var output = "";
         // One line multiline comment. Why, but why?
-        if (res = multilineComment.exec(line)) {
+        if (res = amelRe.multilineComment.exec(line)) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber +
                     ": Found one line multiline comment: " + res[1],
@@ -88,7 +58,7 @@ function Parser(writeFile) {
             }
             output += this.indentation() + "<!--" + res[1] + "-->\n";
             // multiline comment end
-        } else if (res = multilineCommentERe.exec(line)) {
+        } else if (res = amelRe.multilineCommentERe.exec(line)) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber +
                     ": Found multiline comment end",
@@ -108,7 +78,7 @@ function Parser(writeFile) {
             }
             inMultilineComment = 0;
             // Block end
-        } else if (blockEndRe.exec(line)) {
+        } else if (amelRe.blockEndRe.exec(line)) {
             levelIndex--;
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Closing block",
@@ -170,7 +140,7 @@ function Parser(writeFile) {
             }
             if (inStyleMarkup) {
                 // Check for constant use within the style markup
-                while (constant = constUseRe.exec(line)) {
+                while (constant = amelRe.constUseRe.exec(line)) {
                     if (constants[constant[1]]) {
                         if (verbose === 3) {
                             logger.log("Line " + lineNumber +
@@ -196,7 +166,7 @@ function Parser(writeFile) {
             }
             // multiline comment start
         } else if (!inAmelCode && !inExtern &&
-            (res = multilineCommentSRe.exec(line))) {
+            (res = amelRe.multilineCommentSRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber +
                     ": Found multiline comment start", scriptName);
@@ -209,7 +179,7 @@ function Parser(writeFile) {
             inMultilineComment = 1;
             output += this.indentation() + "<!--" + res[1] + "\n";
             // Skip line if one line comment
-        } else if (!inAmelCode && !inExtern && (commentRe.exec(line))) {
+        } else if (!inAmelCode && !inExtern && (amelRe.commentRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Comment " + line,
                     scriptName);
@@ -217,7 +187,7 @@ function Parser(writeFile) {
             output += this.indentation() + "<!--" +
                 line.trim().replace(/^\/\//, "") + " -->\n";
             // Amel code block
-        } else if (res = amelCodeRe.exec(line)) {
+        } else if (res = amelRe.amelCodeRe.exec(line)) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Found amel code block",
                     scriptName);
@@ -227,7 +197,7 @@ function Parser(writeFile) {
             levelIndex++;
             levels.push("amel");
             // External code block
-        } else if (!inAmelCode && (res = externRe.exec(line))) {
+        } else if (!inAmelCode && (res = amelRe.externRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Found extern code block",
                     scriptName);
@@ -238,7 +208,7 @@ function Parser(writeFile) {
             externCodeBuffer = "";
             // Constant definition
         } else if (!inAmelCode && !inExtern &&
-            (res = ConstDefRe.exec(line))) {
+            (res = amelRe.ConstDefRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Const " + res[1] +
                     " = " + res[2], scriptName);
@@ -251,7 +221,7 @@ function Parser(writeFile) {
             constants[res[1]] = res[2];
             // Implicit declaration
         } else if (!inAmelCode && !inExtern &&
-            (res = implicitDeclarationRe.exec(line))) {
+            (res = amelRe.implicitDeclarationRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Implicit declaration: " +
                     res[1], scriptName);
@@ -264,10 +234,10 @@ function Parser(writeFile) {
                 // Indentation level
                 var element = this.indentation() + "<" + tag;
                 // Find classes
-                if (line.match(elementClassRe)) {
+                if (line.match(amelRe.elementClassRe)) {
                     var classAmount = 0;
                     element += " class=\"";
-                    while (classes = elementClassRe.exec(res[1])) {
+                    while (classes = amelRe.elementClassRe.exec(res[1])) {
                         if (classAmount === 0) {
                             element += classes[1];
                         } else {
@@ -278,13 +248,13 @@ function Parser(writeFile) {
                     element += "\"";
                 }
                 // Find ids
-                if (line.match(elementIdRe)) {
-                    if (id = elementIdRe.exec(res[1])) {
+                if (line.match(amelRe.elementIdRe)) {
+                    if (id = amelRe.elementIdRe.exec(res[1])) {
                         element += " id=\"" + id[1] + "\"";
                     }
                 }
                 // Find attributes
-                while (attributes = elementAttributesRe.exec(res[2])) {
+                while (attributes = amelRe.elementAttributesRe.exec(res[2])) {
                     if (verbose === 3) {
                         logger.log("Line " + lineNumber + ": Attribute: " +
                             attributes[1] + " = " + attributes[2],
@@ -300,7 +270,7 @@ function Parser(writeFile) {
                 levels.push(tag);
             }
             // Element declaration
-        } else if (!inExtern && (res = elementDeclarationRe.exec(line))) {
+        } else if (!inExtern && (res = amelRe.elementDeclarationRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Element: " + res[1] +
                     ", level index " + levelIndex + " at " +
@@ -310,10 +280,10 @@ function Parser(writeFile) {
                 levelIndex++;
                 output += line + "<br>\n";
             } else {
-                var baseElement = tagRe.exec(res[1]);
-                var singletonElement = singletonTagRe.exec(res[1]);
-                var nonStandardElement = nonStandardTagRe.exec(res[1]);
-                var deprecatedElement = deprecatedTagRe.exec(res[1]);
+                var baseElement = amelRe.tagRe.exec(res[1]);
+                var singletonElement = amelRe.singletonTagRe.exec(res[1]);
+                var nonStandardElement = amelRe.nonStandardTagRe.exec(res[1]);
+                var deprecatedElement = amelRe.deprecatedTagRe.exec(res[1]);
                 var tag = "";
                 if (singletonElement && verbose > 0) {
                     logger.log("Line " + lineNumber + ": " +
@@ -349,10 +319,10 @@ function Parser(writeFile) {
                 // Indentation level
                 var element = this.indentation() + "<" + tag;
                 // Find classes
-                if (line.match(elementClassRe)) {
+                if (line.match(amelRe.elementClassRe)) {
                     var classAmount = 0;
                     element += " class=\"";
-                    while (classes = elementClassRe.exec(res[1])) {
+                    while (classes = amelRe.elementClassRe.exec(res[1])) {
                         if (classAmount === 0) {
                             element += classes[1];
                         } else {
@@ -363,13 +333,13 @@ function Parser(writeFile) {
                     element += "\"";
                 }
                 // Find ids
-                if (line.match(elementIdRe)) {
-                    if (id = elementIdRe.exec(res[1])) {
+                if (line.match(amelRe.elementIdRe)) {
+                    if (id = amelRe.elementIdRe.exec(res[1])) {
                         element += " id=\"" + id[1] + "\"";
                     }
                 }
                 // Find attributes
-                while (attributes = elementAttributesRe.exec(res[2])) {
+                while (attributes = amelRe.elementAttributesRe.exec(res[2])) {
                     if (verbose === 3) {
                         logger.log("Line " + lineNumber + ": Attribute: " +
                             attributes[1] + " = " + attributes[2],
@@ -380,7 +350,7 @@ function Parser(writeFile) {
                     this.checkAttribute(attributes[1], tag);
                 }
                 // Search for constant use in attributes
-                while (attributes = attributesConstRe.exec(res[2])) {
+                while (attributes = amelRe.attributesConstRe.exec(res[2])) {
                     if (verbose === 3) {
                         logger.log("Line " + lineNumber +
                             ": Const in attribute: " + attributes[1] +
@@ -422,7 +392,7 @@ function Parser(writeFile) {
                 }
             }
             // Singleton element declaration
-        } else if (res = elementDeclaration2Re.exec(line)) {
+        } else if (res = amelRe.elementDeclaration2Re.exec(line)) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Singleton tag",
                     scriptName);
@@ -431,10 +401,10 @@ function Parser(writeFile) {
                 levelIndex++;
                 output += line + "<br>\n";
             } else {
-                var baseElement = tagRe.exec(res[1]);
-                var singletonElement = singletonTagRe.exec(res[1]);
-                var nonStandardElement = nonStandardTagRe.exec(res[1]);
-                var deprecatedElement = deprecatedTagRe.exec(res[1]);
+                var baseElement = amelRe.tagRe.exec(res[1]);
+                var singletonElement = amelRe.singletonTagRe.exec(res[1]);
+                var nonStandardElement = amelRe.nonStandardTagRe.exec(res[1]);
+                var deprecatedElement = amelRe.deprecatedTagRe.exec(res[1]);
                 var tag = "";
                 if (!singletonElement && verbose > 0) {
                     logger.log("Line " + lineNumber + ": " + res[1] +
@@ -450,10 +420,10 @@ function Parser(writeFile) {
                 }
                 var element = this.indentation() + "<" + tag;
                 // Find classes
-                if (res[1].match(elementClassRe)) {
+                if (res[1].match(amelRe.elementClassRe)) {
                     var classAmount = 0;
                     element += " class=\"";
-                    while (classes = elementClassRe.exec(res[1])) {
+                    while (classes = amelRe.elementClassRe.exec(res[1])) {
                         if (classAmount === 0) {
                             element += classes[1];
                         } else {
@@ -464,13 +434,13 @@ function Parser(writeFile) {
                     element += "\"";
                 }
                 // Find ids
-                if (line.match(elementIdRe)) {
-                    if (id = elementIdRe.exec(res[1])) {
+                if (line.match(amelRe.elementIdRe)) {
+                    if (id = amelRe.elementIdRe.exec(res[1])) {
                         element += " id=\"" + id[1] + "\"";
                     }
                 }
                 // Find attributes
-                while (attributes = elementAttributesRe.exec(res[2])) {
+                while (attributes = amelRe.elementAttributesRe.exec(res[2])) {
                     if (verbose === 3) {
                         logger.log("Line " + lineNumber + ": Attribute: " +
                             attributes[1] + " = " +
@@ -481,7 +451,7 @@ function Parser(writeFile) {
                     this.checkAttribute(attributes[1], tag);
                 }
                 // Check for constant use in attributes
-                while (attributes = attributesConstRe.exec(res[2])) {
+                while (attributes = amelRe.attributesConstRe.exec(res[2])) {
                     if (verbose === 3) {
                         logger.log("Line " + lineNumber +
                             ": Const in attribute: " +
@@ -511,11 +481,11 @@ function Parser(writeFile) {
                 output += element + " />\n";
             }
             // Constant used
-        } else if (line.match(constUseRe)) {
+        } else if (line.match(amelRe.constUseRe)) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Constant used", scriptName);
             }
-            while (!inAmelCode && (constant = constUseRe.exec(line))) {
+            while (!inAmelCode && (constant = amelRe.constUseRe.exec(line))) {
                 if (constants[constant[1]]) {
                     if (verbose === 3) {
                         logger.log("Line " + lineNumber + ": Replacing @" +
@@ -537,7 +507,7 @@ function Parser(writeFile) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Other", scriptName);
             }
-            if (singletonElement = singletonTagRe.exec(line)) {
+            if (singletonElement = amelRe.singletonTagRe.exec(line)) {
                 if (verbose === 3) {
                     logger.log("Line " + lineNumber + ": Found " +
                         singletonElement[1], scriptName);
@@ -547,31 +517,31 @@ function Parser(writeFile) {
                 if (!inExtern && !inAmelCode) {
                     // Indent text correctly
                     // Bold text
-                    while (bold = boldRe.exec(line)) {
+                    while (bold = amelRe.boldRe.exec(line)) {
                         line = line.replace("__" + bold[1] + "__", "<strong>" +
                             bold[1] + "</strong>");
                     }
                     // Italic text
-                    while (italic = italicRe.exec(line)) {
+                    while (italic = amelRe.italicRe.exec(line)) {
                         line = line.replace("_" + italic[1] + "_", "<em>" +
                             italic[1] + "</em>");
                     }
                     // Stroke text
-                    while (stroke = strokeRe.exec(line)) {
+                    while (stroke = amelRe.strokeRe.exec(line)) {
                         line = line.replace("--" + stroke[1] + "--", "<s>" +
                             stroke[1] + "</s>");
                     }
                     // One line element declaration
-                    while (elements = oneLineDeclarationRe.exec(line)) {
+                    while (elements = amelRe.oneLineDeclarationRe.exec(line)) {
                         if (verbose === 3) {
                             logger.log("Line " + lineNumber + ": Element: " + elements[0] +
                                 ", level index " + levelIndex + " at " + elements[0].trim(),
                                 scriptName);
                         }
-                        var baseElement = tagRe.exec(elements[1]);
-                        var singletonElement = singletonTagRe.exec(elements[1]);
-                        var nonStandardElement = nonStandardTagRe.exec(elements[1]);
-                        var deprecatedElement = deprecatedTagRe.exec(elements[1]);
+                        var baseElement = amelRe.tagRe.exec(elements[1]);
+                        var singletonElement = amelRe.singletonTagRe.exec(elements[1]);
+                        var nonStandardElement = amelRe.nonStandardTagRe.exec(elements[1]);
+                        var deprecatedElement = amelRe.deprecatedTagRe.exec(elements[1]);
                         var tag = "";
                         if (singletonElement && verbose > 0) {
                             logger.log("Line " + lineNumber + ": " + singletonElement[1] +
@@ -606,11 +576,11 @@ function Parser(writeFile) {
                         }
                         var element = "<" + tag;
                         // Find classes
-                        if (line.match(elementClassRe)) {
+                        if (line.match(amelRe.elementClassRe)) {
                             var classAmount = 0;
                             element += " class=\"";
                             while (classes =
-                                elementClassRe.exec(elements[1])) {
+                                amelRe.elementClassRe.exec(elements[1])) {
                                 if (classAmount === 0) {
                                     element += classes[1];
                                 } else {
@@ -621,14 +591,14 @@ function Parser(writeFile) {
                             element += "\"";
                         }
                         // Find ids
-                        if (line.match(elementIdRe)) {
-                            if (id = elementIdRe.exec(element[1])) {
+                        if (line.match(amelRe.elementIdRe)) {
+                            if (id = amelRe.elementIdRe.exec(element[1])) {
                                 element += " id=\"" + id[1] + "\"";
                             }
                         }
                         // Find attributes
                         while (attributes =
-                            elementAttributesRe.exec(elements[2])) {
+                            amelRe.elementAttributesRe.exec(elements[2])) {
                             if (verbose === 3) {
                                 logger.log("Line " + lineNumber +
                                     ": Attribute: " + attributes[1] +
