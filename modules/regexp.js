@@ -6,10 +6,10 @@ function AmelRe(keywords) {
     this.commentRe = /^\s*\/\//;
     this.ConstDefRe = /@([a-zA-Z0-9_]+)\s*=\s*"(.*)"/;
     this.constUseRe = /@([a-zA-Z0-9_]+)/;
-    this.elementDeclarationRe = /^\s*([^\.#][^ @\(\)\[\]]*)\s*(\[.*\])?\s*\(/;
+    this.elementDeclarationRe = /^\s*([^\.#][^ @\(\)\[\]]*)(\[.*\])?\(/;
     this.elementDeclaration2Re = /^\s*([^\.#][^ @\)\[\]]*)(\[.*\])/;
-    this.implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
-    this.oneLineDeclarationRe = /([^\.#> ][^ @\(\)\[\]>]*)\s*(\[[^\(\)>]*\])?\s*\(([^\)]+)\)/g;
+    this.implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)(\[.*\])?\(/;
+    this.oneLineDeclarationRe = /([^\.#> ][^ @\(\)\[\]>]*)(\[[^\(\)>]*\])?\(([^\)]+)\)/g;
     this.elementClassRe = /\.([a-zA-Z0-9_\-]+)/g;
     this.elementIdRe = /#([a-zA-Z0-9_\-]+)/;
     this.elementAttributesRe = /([a-zA-Z_\-]+)\s*=\s*"([^,"]*)"/g;
@@ -28,8 +28,8 @@ function AmelRe(keywords) {
         ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
     this.deprecatedTagRe = new RegExp("(" + Object.keys(keywords.deprecatedTags).join("|") +
         ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
-    this.amelCodeRe = /@amel\s*:\s*\(/;
-    this.externRe = /@extern\s*:\s*\(/;  
+    this.amelCodeRe = /@amel:\(/;
+    this.externRe = /@extern:\(/;  
 }
 
 module.exports = AmelRe;

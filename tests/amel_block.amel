@@ -1,10 +1,10 @@
-div (
+div(
     test
 )
 
-@amel: (
+@amel:(
     This is an amel code example.
-    div.amel (
+    div.amel(
         test
     )
 )

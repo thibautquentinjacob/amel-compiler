@@ -26,7 +26,7 @@ function Watcher ( files ) {
             logger.log( "Adding " + files[i] + " to watch list", scriptName );
             var stats = Fs.statSync( files[i]);
             watchedFiles.push({ "name": files[i], "time": stats.mtime });
-            var parser           = new Parser();
+            var parser           = new Parser( true );
             parser.logToScreen( true );
             parser.parse( watchedFiles[i].name, function() {
                 logger.log( "Finished compiling", scriptName );
@@ -97,11 +97,12 @@ function Watcher ( files ) {
                     logger.log( "Refreshing " + watchedFiles[i].name,
                                 scriptName );
                     watchedFiles[i].time = stats.mtime;
-                    var parser           = new Parser();
+                    var parser           = new Parser( true );
                     parser.logToScreen( true );
+                    parser.setVerbose(3);
                     parser.parse( watchedFiles[i].name, function( file ) {
                         logger.log( "Finished compiling", scriptName );
-                        file = file.replace( "amel", "html" );
+//                         file = file.replace( "amel", "html" );
 //                         Exec( "open " + file );
                     });
                 }

@@ -44,22 +44,23 @@ var getTestNumber = function (items) {
 }
 
 Array.stringify = function (arr) {
-        var res = "";
-        for (var i = 0; i < arr.length - 1; i++) {
-            res += '"' + arr[i] + '",';
-        }
-        res += '"' + arr[arr.length - 1] + '"';
-        return res;
+    var res = "";
+    for (var i = 0; i < arr.length - 1; i++) {
+        res += '"' + arr[i] + '",';
     }
-    /**
-     * Checks if the produce of the amel file compilation gave the expected output.
-     * 
-     * Provided an input amel file, check if a res and an html file with the same
-     * root name exist. Print an error if not. If both exist, compare the MD5 sum of
-     * the res (expected) file to the HTML (output) file. Print the result.
-     * @param Input file
-     * @return None
-     */
+    res += '"' + arr[arr.length - 1] + '"';
+    return res;
+}
+
+/**
+ * Checks if the produce of the amel file compilation gave the expected output.
+ * 
+ * Provided an input amel file, check if a res and an html file with the same
+ * root name exist. Print an error if not. If both exist, compare the MD5 sum of
+ * the res (expected) file to the HTML (output) file. Print the result.
+ * @param Input file
+ * @return None
+ */
 var compare = function (_item) {
     var item = _item.path;
     testTotal++;

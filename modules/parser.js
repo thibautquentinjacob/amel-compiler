@@ -7,17 +7,18 @@
  */
 
 // Requirements
-var Keywords = require('./keywords.js');
+var Keywords   = require('./keywords.js');
 var amelRegExp = require('./regexp.js');
-var Logger = require("./logger.js");
-var Fs = require("fs");
+var Logger     = require("./logger.js");
+var Fs         = require("fs");
 var scriptName = __filename;
-scriptName = scriptName.replace(__dirname + "/", "");
+scriptName     = scriptName.replace(__dirname + "/", "");
 
 /**
  * Parser Constructor
  * Init
- * @param boolean writeFile to specify wether or not the output should be writen or just returned
+ * @param boolean writeFile to specify wether or not the output should be 
+ * written or just returned
  * @return nothing
  */
 function Parser(writeFile) {
@@ -34,7 +35,7 @@ function Parser(writeFile) {
     var lineNumber = 0;
     var keywords = new Keywords();
     var amelRe = new amelRegExp(keywords);
-    verbose = 0;
+    verbose = 3;
     profiling = true;
     var writeToFile = false || writeFile;
     logger.setUseFile(true);
@@ -106,17 +107,21 @@ function Parser(writeFile) {
                             externCodeBuffer, scriptName);
                     }
                     //                     output += eval( externCodeBuffer ) + "\n";
-                    var out = eval("function fun() { " + externCodeBuffer +
-                        "}; fun()");
-                    // export returned vars to environment
-                    for (var key in out) {
-                        if (verbose > 0) {
-                            logger.log("Exporting constant " + key +
-                                " = " + out[key], scriptName);
-                        }
-                        constants[key] = out[key];
-                    }
-                    inExtern = 0;
+                    eval("function fun( callback ) { " + externCodeBuffer +
+                        "}; fun( function( res ) {"+
+                        "console.log('Calling callback');"+
+                        "// export returned vars to environment"+
+                        "for (var key in res) {"+
+                        "    if (verbose > 0) {"+
+                        "        logger.log('Exporting constant ' + key +"+
+                        "            ' = ' + res[key], scriptName);"+
+                        "    }"+
+                        "    constants[key] = res[key];"+
+                        "}"+
+                        "inExtern = 0;"+
+                    "});");
+                    
+                    
                 } else {
                     output += line + "<br>\n";
                 }
@@ -270,7 +275,7 @@ function Parser(writeFile) {
                 levels.push(tag);
             }
             // Element declaration
-        } else if (!inExtern && (res = amelRe.elementDeclarationRe.exec(line))) {
+        } else if (!inExtern && !inStyleMarkup && (res = amelRe.elementDeclarationRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Element: " + res[1] +
                     ", level index " + levelIndex + " at " +
@@ -392,7 +397,8 @@ function Parser(writeFile) {
                 }
             }
             // Singleton element declaration
-        } else if (res = amelRe.elementDeclaration2Re.exec(line)) {
+        } else if (res = amelRe.elementDeclaration2Re.exec(line) && 
+                   !inStyleMarkup && !inExtern) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Singleton tag",
                     scriptName);

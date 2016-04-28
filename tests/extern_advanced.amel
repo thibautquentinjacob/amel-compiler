@@ -1,4 +1,4 @@
-@extern: (
+@extern:(
     var list = [ 1, 2, 3, 4, 5, 6 ];
     var sum = list.reduce(
         function( prec, curr, index, list ) {
