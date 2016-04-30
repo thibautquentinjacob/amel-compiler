@@ -26,10 +26,12 @@ function Parser(writeFile) {
     var constants = {};
     var levels = [];
     var levelIndex = 0;
+    var scriptIndentLevel = 0;
     var inMultilineComment = 0;
     var inStyleMarkup = 0;
     var inAmelCode = 0;
     var inExtern = 0;
+    var inScript = 0;
     var externCodeBuffer = "";
     var logger = new Logger();
     var lineNumber = 0;
@@ -80,6 +82,9 @@ function Parser(writeFile) {
             inMultilineComment = 0;
             // Block end
         } else if (amelRe.blockEndRe.exec(line)) {
+//                 console.log( "line: " + line );
+//             var res = amelRe.blockEndRe.exec(line);
+//             console.log( res );
             levelIndex--;
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Closing block",
@@ -97,7 +102,15 @@ function Parser(writeFile) {
                     }
                     inStyleMarkup = 0;
                 }
-                // If in an external code
+                if (inScript) {
+                    if (verbose === 3) {
+                        logger.log("Line " + lineNumber +
+                            ": No longer in script markup",
+                            scriptName);
+                    }
+                    inScript = 0;
+                }
+            // If in an external code
             } else if (inExtern) {
                 if (levels[levelIndex] === "extern") {
                     levels.pop();
@@ -108,19 +121,20 @@ function Parser(writeFile) {
                     }
                     //                     output += eval( externCodeBuffer ) + "\n";
                     eval("function fun( callback ) { " + externCodeBuffer +
-                        "}; fun( function( res ) {"+
-                        "console.log('Calling callback');"+
-                        "// export returned vars to environment"+
-                        "for (var key in res) {"+
-                        "    if (verbose > 0) {"+
-                        "        logger.log('Exporting constant ' + key +"+
-                        "            ' = ' + res[key], scriptName);"+
-                        "    }"+
-                        "    constants[key] = res[key];"+
-                        "}"+
-                        "inExtern = 0;"+
-                    "});");
-                    
+                        "};");
+                    fun( function( res ) {
+                        console.log("Calling callback");
+                        // export returned vars to environment
+                        for (var key in res) {
+                            if (verbose > 0) {
+                                logger.log("Exporting constant " + key +
+                                    " = " + res[key], scriptName);
+                            }
+                            constants[key] = res[key];
+                        }
+                        console.log( constants );
+                        inExtern = 0;
+                    });
                     
                 } else {
                     output += line + "<br>\n";
@@ -225,7 +239,7 @@ function Parser(writeFile) {
             }
             constants[res[1]] = res[2];
             // Implicit declaration
-        } else if (!inAmelCode && !inExtern &&
+        } else if (!inScript && !inAmelCode && !inExtern &&
             (res = amelRe.implicitDeclarationRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Implicit declaration: " +
@@ -275,7 +289,7 @@ function Parser(writeFile) {
                 levels.push(tag);
             }
             // Element declaration
-        } else if (!inExtern && !inStyleMarkup && (res = amelRe.elementDeclarationRe.exec(line))) {
+        } else if (!inScript && !inExtern && !inStyleMarkup && (res = amelRe.elementDeclarationRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Element: " + res[1] +
                     ", level index " + levelIndex + " at " +
@@ -290,6 +304,7 @@ function Parser(writeFile) {
                 var nonStandardElement = amelRe.nonStandardTagRe.exec(res[1]);
                 var deprecatedElement = amelRe.deprecatedTagRe.exec(res[1]);
                 var tag = "";
+
                 if (singletonElement && verbose > 0) {
                     logger.log("Line " + lineNumber + ": " +
                         singletonElement[1] +
@@ -320,6 +335,9 @@ function Parser(writeFile) {
                     }
                 } else {
                     tag = baseElement[1]
+                }
+                if ( tag === "script" ) {
+                    inScript = 1;
                 }
                 // Indentation level
                 var element = this.indentation() + "<" + tag;
@@ -396,9 +414,9 @@ function Parser(writeFile) {
                     inStyleMarkup = 1;
                 }
             }
-            // Singleton element declaration
-        } else if (res = amelRe.elementDeclaration2Re.exec(line) && 
-                   !inStyleMarkup && !inExtern) {
+        // Singleton element declaration
+        } else if (!inStyleMarkup && !inExtern && !inScript &&
+                   (res = amelRe.elementDeclaration2Re.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Singleton tag",
                     scriptName);
@@ -417,6 +435,9 @@ function Parser(writeFile) {
                         " is not a singleton element", scriptName, "e");
                 } else {
                     tag = res[1];
+                }
+                if ( tag === "script" ) {
+                    inScript = 1;
                 }
 
                 if (verbose === 3) {
@@ -520,7 +541,7 @@ function Parser(writeFile) {
                 }
                 output += this.indentation() + "<" + singletonElement[1] + "><br>\n";
             } else {
-                if (!inExtern && !inAmelCode) {
+                if (!inExtern && !inAmelCode && !inScript) {
                     // Indent text correctly
                     // Bold text
                     while (bold = amelRe.boldRe.exec(line)) {
@@ -618,8 +639,42 @@ function Parser(writeFile) {
                         line = line.replace(elements[0], element);
                     }
                 }
-                if (!inExtern) {
+                if (!inExtern && !inScript) {
                     output += this.indentation() + line.trim() + "<br>\n";
+                } else if ( inScript ) {
+                    logger.log("Line " + lineNumber + ": In script", scriptName);
+                    var openedCurlyRe = /\{/;
+                    var closedCurlyRe = /\}/;
+                    var openedCurlyCount = openedCurlyRe.exec(line);
+                    var closedCurlyCount = closedCurlyRe.exec(line);
+                    if ( openedCurlyCount && 
+                         closedCurlyCount ) {
+                        openedCurlyCount = openedCurlyCount.length;
+                        closedCurlyCount = closedCurlyCount.length;
+                        logger.log("Line " + lineNumber + ": Found " + 
+                                    openedCurlyCount + " opened curly and " +
+                                    closedCurlyCount + " closed curly", 
+                                    scriptName);
+                        if ( openedCurlyCount > closedCurlyCount ) {
+                            output += this.indentation() + line.trim() + "\n";
+                            scriptIndentLevel++;
+                        } else if ( openedCurlyCount < closedCurlyCount ) {
+                            output += this.indentation() + line.trim() + "\n";
+                            scriptIndentLevel--;
+                        } else {
+                            output += this.indentation() + line.trim() + "\n";
+                        }
+                    } else if ( openedCurlyCount ) {
+                        output += this.indentation() + line.trim() + "\n";
+                        scriptIndentLevel++;
+                        logger.log("Line " + lineNumber + ": Indenting ", scriptName ); 
+                    } else if ( closedCurlyCount ) {
+                        scriptIndentLevel--;
+                        output += this.indentation() + line.trim() + "\n";
+                        logger.log("Line " + lineNumber + ": Unindenting ", scriptName ); 
+                    } else {
+                        output += this.indentation() + line.trim() + "\n";
+                    }
                 } else {
                     externCodeBuffer += line.trim() + "\n";
                 }
@@ -756,7 +811,7 @@ function Parser(writeFile) {
      */
     this.indentation = function () {
         var indentation = "";
-        for (var i = 0; i < levelIndex; i++) {
+        for (var i = 0; i < levelIndex + scriptIndentLevel; i++) {
             indentation += "    ";
         }
         return indentation;

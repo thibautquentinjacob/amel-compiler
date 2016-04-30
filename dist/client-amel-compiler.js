@@ -14,10 +14,10 @@ function AmelRe(keywords) {
     this.commentRe = /^\s*\/\//;
     this.ConstDefRe = /@([a-zA-Z0-9_]+)\s*=\s*"(.*)"/;
     this.constUseRe = /@([a-zA-Z0-9_]+)/;
-    this.elementDeclarationRe = /^\s*([^\.#][^ @\(\)\[\]]*)\s*(\[.*\])?\s*\(/;
+    this.elementDeclarationRe = /^\s*([^\.#][^ @\(\)\[\]]*)(\[.*\])?\(/;
     this.elementDeclaration2Re = /^\s*([^\.#][^ @\)\[\]]*)(\[.*\])/;
-    this.implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)\s*(\[.*\])?\s*\(/;
-    this.oneLineDeclarationRe = /([^\.#> ][^ @\(\)\[\]>]*)\s*(\[[^\(\)>]*\])?\s*\(([^\)]+)\)/g;
+    this.implicitDeclarationRe = /^\s*(\.[^ @\(\)\[\]]+|#[^ @\(\)\[\]]+)(\[.*\])?\(/;
+    this.oneLineDeclarationRe = /([^\.#> ][^ @\(\)\[\]>]*)(\[[^\(\)>]*\])?\(([^\)]+)\)/g;
     this.elementClassRe = /\.([a-zA-Z0-9_\-]+)/g;
     this.elementIdRe = /#([a-zA-Z0-9_\-]+)/;
     this.elementAttributesRe = /([a-zA-Z_\-]+)\s*=\s*"([^,"]*)"/g;
@@ -27,7 +27,8 @@ function AmelRe(keywords) {
     this.italicRe = /_([^_]*)_/g;
     this.strokeRe = /\-\-(.*)\-\-/g;
     this.supRe = /\^\(\)/; // not used
-    this.blockEndRe = /\)\s*$/;
+//     this.blockEndRe = /\)\s*$/;
+    this.blockEndRe = /^[^\/]*\)\s*$/;
     this.tagRe = new RegExp("(" + keywords.tags.join("|") +
         ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
     this.singletonTagRe = new RegExp("^[ \t]*(" + keywords.singletonTags.join("|") +
@@ -36,8 +37,8 @@ function AmelRe(keywords) {
         ")\s*(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
     this.deprecatedTagRe = new RegExp("(" + Object.keys(keywords.deprecatedTags).join("|") +
         ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
-    this.amelCodeRe = /@amel\s*:\s*\(/;
-    this.externRe = /@extern\s*:\s*\(/;  
+    this.amelCodeRe = /@amel:\(/;
+    this.externRe = /@extern:\(/;  
 }
 
 
@@ -89,6 +90,9 @@ function Parser(){
             inMultilineComment = 0;
             // Block end
         } else if (amelRe.blockEndRe.exec(line)) {
+//                 console.log( "line: " + line );
+//             var res = amelRe.blockEndRe.exec(line);
+//             console.log( res );
             levelIndex--;
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Closing block",
@@ -106,7 +110,15 @@ function Parser(){
                     }
                     inStyleMarkup = 0;
                 }
-                // If in an external code
+                if (inScript) {
+                    if (verbose === 3) {
+                        logger.log("Line " + lineNumber +
+                            ": No longer in script markup",
+                            scriptName);
+                    }
+                    inScript = 0;
+                }
+            // If in an external code
             } else if (inExtern) {
                 if (levels[levelIndex] === "extern") {
                     levels.pop();
@@ -116,17 +128,22 @@ function Parser(){
                             externCodeBuffer, scriptName);
                     }
                     //                     output += eval( externCodeBuffer ) + "\n";
-                    var out = eval("function fun() { " + externCodeBuffer +
-                        "}; fun()");
-                    // export returned vars to environment
-                    for (var key in out) {
-                        if (verbose > 0) {
-                            logger.log("Exporting constant " + key +
-                                " = " + out[key], scriptName);
+                    eval("function fun( callback ) { " + externCodeBuffer +
+                        "};");
+                    fun( function( res ) {
+                        console.log("Calling callback");
+                        // export returned vars to environment
+                        for (var key in res) {
+                            if (verbose > 0) {
+                                logger.log("Exporting constant " + key +
+                                    " = " + res[key], scriptName);
+                            }
+                            constants[key] = res[key];
                         }
-                        constants[key] = out[key];
-                    }
-                    inExtern = 0;
+                        console.log( constants );
+                        inExtern = 0;
+                    });
+                    
                 } else {
                     output += line + "<br>\n";
                 }
@@ -230,7 +247,7 @@ function Parser(){
             }
             constants[res[1]] = res[2];
             // Implicit declaration
-        } else if (!inAmelCode && !inExtern &&
+        } else if (!inScript && !inAmelCode && !inExtern &&
             (res = amelRe.implicitDeclarationRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Implicit declaration: " +
@@ -280,7 +297,7 @@ function Parser(){
                 levels.push(tag);
             }
             // Element declaration
-        } else if (!inExtern && (res = amelRe.elementDeclarationRe.exec(line))) {
+        } else if (!inScript && !inExtern && !inStyleMarkup && (res = amelRe.elementDeclarationRe.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Element: " + res[1] +
                     ", level index " + levelIndex + " at " +
@@ -295,6 +312,7 @@ function Parser(){
                 var nonStandardElement = amelRe.nonStandardTagRe.exec(res[1]);
                 var deprecatedElement = amelRe.deprecatedTagRe.exec(res[1]);
                 var tag = "";
+
                 if (singletonElement && verbose > 0) {
                     logger.log("Line " + lineNumber + ": " +
                         singletonElement[1] +
@@ -325,6 +343,9 @@ function Parser(){
                     }
                 } else {
                     tag = baseElement[1]
+                }
+                if ( tag === "script" ) {
+                    inScript = 1;
                 }
                 // Indentation level
                 var element = this.indentation() + "<" + tag;
@@ -401,8 +422,9 @@ function Parser(){
                     inStyleMarkup = 1;
                 }
             }
-            // Singleton element declaration
-        } else if (res = amelRe.elementDeclaration2Re.exec(line)) {
+        // Singleton element declaration
+        } else if (!inStyleMarkup && !inExtern && !inScript &&
+                   (res = amelRe.elementDeclaration2Re.exec(line))) {
             if (verbose === 3) {
                 logger.log("Line " + lineNumber + ": Singleton tag",
                     scriptName);
@@ -421,6 +443,9 @@ function Parser(){
                         " is not a singleton element", scriptName, "e");
                 } else {
                     tag = res[1];
+                }
+                if ( tag === "script" ) {
+                    inScript = 1;
                 }
 
                 if (verbose === 3) {
@@ -524,7 +549,7 @@ function Parser(){
                 }
                 output += this.indentation() + "<" + singletonElement[1] + "><br>\n";
             } else {
-                if (!inExtern && !inAmelCode) {
+                if (!inExtern && !inAmelCode && !inScript) {
                     // Indent text correctly
                     // Bold text
                     while (bold = amelRe.boldRe.exec(line)) {
@@ -622,8 +647,42 @@ function Parser(){
                         line = line.replace(elements[0], element);
                     }
                 }
-                if (!inExtern) {
+                if (!inExtern && !inScript) {
                     output += this.indentation() + line.trim() + "<br>\n";
+                } else if ( inScript ) {
+                    logger.log("Line " + lineNumber + ": In script", scriptName);
+                    var openedCurlyRe = /\{/;
+                    var closedCurlyRe = /\}/;
+                    var openedCurlyCount = openedCurlyRe.exec(line);
+                    var closedCurlyCount = closedCurlyRe.exec(line);
+                    if ( openedCurlyCount && 
+                         closedCurlyCount ) {
+                        openedCurlyCount = openedCurlyCount.length;
+                        closedCurlyCount = closedCurlyCount.length;
+                        logger.log("Line " + lineNumber + ": Found " + 
+                                    openedCurlyCount + " opened curly and " +
+                                    closedCurlyCount + " closed curly", 
+                                    scriptName);
+                        if ( openedCurlyCount > closedCurlyCount ) {
+                            output += this.indentation() + line.trim() + "\n";
+                            scriptIndentLevel++;
+                        } else if ( openedCurlyCount < closedCurlyCount ) {
+                            output += this.indentation() + line.trim() + "\n";
+                            scriptIndentLevel--;
+                        } else {
+                            output += this.indentation() + line.trim() + "\n";
+                        }
+                    } else if ( openedCurlyCount ) {
+                        output += this.indentation() + line.trim() + "\n";
+                        scriptIndentLevel++;
+                        logger.log("Line " + lineNumber + ": Indenting ", scriptName ); 
+                    } else if ( closedCurlyCount ) {
+                        scriptIndentLevel--;
+                        output += this.indentation() + line.trim() + "\n";
+                        logger.log("Line " + lineNumber + ": Unindenting ", scriptName ); 
+                    } else {
+                        output += this.indentation() + line.trim() + "\n";
+                    }
                 } else {
                     externCodeBuffer += line.trim() + "\n";
                 }
@@ -688,7 +747,7 @@ function Parser(){
     }
     this.indentation = function () {
         var indentation = "";
-        for (var i = 0; i < levelIndex; i++) {
+        for (var i = 0; i < levelIndex + scriptIndentLevel; i++) {
             indentation += "    ";
         }
         return indentation;

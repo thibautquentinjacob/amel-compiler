@@ -4,6 +4,6 @@
         function( prec, curr, index, list ) {
             return prec + curr;
         }, 0 );
-    return { sum: sum };
+    callback({ sum: sum });
 )
 The sum is @sum

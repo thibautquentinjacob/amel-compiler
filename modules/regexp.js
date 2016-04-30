@@ -19,7 +19,8 @@ function AmelRe(keywords) {
     this.italicRe = /_([^_]*)_/g;
     this.strokeRe = /\-\-(.*)\-\-/g;
     this.supRe = /\^\(\)/; // not used
-    this.blockEndRe = /\)\s*$/;
+//     this.blockEndRe = /\)\s*$/;
+    this.blockEndRe = /^[^\/]*\)\s*$/;
     this.tagRe = new RegExp("(" + keywords.tags.join("|") +
         ")(?:#[a-zA-Z0-9_]+)?(?:.[a-zA-Z0-9_]+)*(?:#[a-zA-Z0-9_]+)?");
     this.singletonTagRe = new RegExp("^[ \t]*(" + keywords.singletonTags.join("|") +
